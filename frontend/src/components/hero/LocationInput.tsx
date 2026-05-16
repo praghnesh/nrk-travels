@@ -128,11 +128,11 @@ const LocationInput: React.FC<LocationInputProps> = ({
 
   return (
     <div className={cn("space-y-3 relative", className)} ref={containerRef}>
-      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-900/40 dark:text-emerald-100/40 ml-1">
+      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 ml-1">
         {label}
       </label>
       <div className="relative group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500/50 group-focus-within:text-emerald-600 transition-colors">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-500 transition-colors">
           <MapPin className="w-5 h-5" />
         </div>
         <input
@@ -141,7 +141,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
           onChange={handleInputChange}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full h-16 bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-500/10 rounded-2xl pl-12 pr-12 text-emerald-950 dark:text-emerald-50 placeholder:text-emerald-900/20 dark:placeholder:text-emerald-100/20 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 focus:bg-white dark:focus:bg-emerald-900/40 transition-all font-bold disabled:bg-emerald-100/10 disabled:cursor-not-allowed"
+          className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-12 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white transition-all font-bold disabled:bg-slate-100 disabled:cursor-not-allowed"
         />
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -176,7 +176,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
                   <span className="text-sm font-black text-emerald-950 dark:text-emerald-50 line-clamp-1">
                     {suggestion.display_name.split(",")[0]}
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-900/40 dark:text-emerald-100/40 line-clamp-1 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-emerald-900/70 dark:text-emerald-100/70 line-clamp-1 uppercase tracking-wider">
                     {[
                       suggestion.address?.suburb,
                       suggestion.address?.city || suggestion.address?.town,

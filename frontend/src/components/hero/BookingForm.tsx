@@ -153,7 +153,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             placeholder="Enter area, city or pincode"
           />
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Package</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Package</label>
             <div className="relative group">
               <select
                 value={localPackage}
@@ -165,14 +165,14 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
                 <option className="bg-white text-slate-900 font-bold">12 Hours / 120 KM</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                <ChevronDown className="w-5 h-5 text-slate-400" />
+                <ChevronDown className="w-5 h-5 text-slate-600" />
               </div>
             </div>
           </div>
           <div className="space-y-3 relative">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Departure</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Departure</label>
             <div onClick={toggleDepPicker} className="relative group cursor-pointer">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-orange-500 transition-colors">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
               <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
@@ -188,7 +188,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
                 "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
-                  : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                  : "bg-slate-100 text-slate-500 cursor-not-allowed"
               )}
             >
               {isSearching ? "Searching..." : "Search"} <Search className={cn("w-5 h-5", isSearching && "animate-spin")} />
@@ -212,17 +212,17 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             placeholder="Enter area, city or pincode"
           />
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Trip Direction</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Trip Direction</label>
             <div className="flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl w-full relative h-16">
               <div className={cn("absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-orange-600 rounded-xl shadow-lg z-0 transition-all duration-300", airportTrip === "to-airport" ? "translate-x-full" : "translate-x-0")} />
-              <button onClick={() => setAirportTrip("from-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "from-airport" ? "text-white" : "text-slate-400")}>From Airport</button>
-              <button onClick={() => setAirportTrip("to-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "to-airport" ? "text-white" : "text-slate-400")}>To Airport</button>
+              <button onClick={() => setAirportTrip("from-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "from-airport" ? "text-white" : "text-slate-600")}>From Airport</button>
+              <button onClick={() => setAirportTrip("to-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "to-airport" ? "text-white" : "text-slate-600")}>To Airport</button>
             </div>
           </div>
           <div className="space-y-3 relative">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Departure</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Departure</label>
             <div onClick={toggleDepPicker} className="relative group cursor-pointer">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-orange-500 transition-colors">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
               <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
@@ -238,7 +238,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
                 "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
-                  : "bg-slate-100 text-slate-300 cursor-not-allowed"
+                  : "bg-slate-100 text-slate-500 cursor-not-allowed"
               )}
             >
               {isSearching ? "Searching..." : "Search"} <Search className={cn("w-5 h-5", isSearching && "animate-spin")} />
@@ -248,7 +248,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
       ) : activeTab === "tour" ? (
         <div className="space-y-6">
           <div className="flex items-center justify-between px-4">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Popular Tour Packages</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600">Popular Tour Packages</h3>
             <button onClick={() => router.push('/#tours')} className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-600 hover:text-emerald-700 transition-colors">View All &rarr;</button>
           </div>
 
@@ -257,42 +257,42 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               onClick={() => handleTourClick('/booking/araku-valley-tour')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-400 group-hover:text-emerald-600 shadow-sm transition-colors">
+              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-emerald-600 shadow-sm transition-colors">
                 <Mountain className="w-7 h-7" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-black text-slate-900 uppercase">Araku Valley Tour</p>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Hill Station Experience</p>
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">Hill Station Experience</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-emerald-500 transition-colors" />
             </button>
 
             <button
               onClick={() => handleTourClick('/booking/lambasingi-tour')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-400 group-hover:text-orange-500 shadow-sm transition-colors">
+              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-orange-500 shadow-sm transition-colors">
                 <Palmtree className="w-7 h-7" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-black text-slate-900 uppercase">Lambasingi Tour</p>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Kashmir of Andhra</p>
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">Kashmir of Andhra</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-orange-500 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-orange-500 transition-colors" />
             </button>
 
             <button
               onClick={() => handleTourClick('/booking/vizag-full-city-tour')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
-              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-400 group-hover:text-blue-600 shadow-sm transition-colors">
+              <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-blue-600 shadow-sm transition-colors">
                 <Landmark className="w-7 h-7" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-black text-slate-900 uppercase">Vizag Full City Tour</p>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Beaches & Museums</p>
+                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-1">Beaches & Museums</p>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
+              <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-blue-500 transition-colors" />
             </button>
 
             <button
@@ -339,13 +339,13 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             placeholder="Enter area, city or pincode"
           />
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Trip Type</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Trip Type</label>
             <TripToggle value={tripType} onChange={setTripType} />
           </div>
           <div className="space-y-3 relative">
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Departure</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Departure</label>
             <div onClick={toggleDepPicker} className="relative group cursor-pointer">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-orange-500 transition-colors">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
               <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
@@ -354,9 +354,9 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             </div>
           </div>
           <div className={cn("space-y-3 relative transition-all duration-300", tripType === "round-trip" ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none")}>
-            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 ml-1">Return</label>
+            <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Return</label>
             <div onClick={toggleRetPicker} className="relative group cursor-pointer">
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-orange-500 transition-colors">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
               <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
@@ -372,7 +372,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
                 "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
-                  : "bg-emerald-100/50 text-emerald-900/20 cursor-not-allowed"
+                  : "bg-slate-200 text-slate-500 cursor-not-allowed"
               )}
             >
               Search <Search className="w-5 h-5" />

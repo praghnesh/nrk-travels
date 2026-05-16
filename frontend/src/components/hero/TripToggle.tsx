@@ -18,11 +18,11 @@ interface TripToggleProps {
 
 const TripToggle: React.FC<TripToggleProps> = ({ value, onChange }) => {
   return (
-    <div className="flex bg-emerald-500/10 dark:bg-emerald-900/20 p-1.5 rounded-2xl w-full relative h-16 lg:h-20 border border-emerald-500/10">
+    <div className="flex bg-slate-50 p-1.5 rounded-2xl w-full relative h-16 lg:h-20 border border-slate-200">
       {/* Animated Background Slide */}
       <div
         className={cn(
-          "absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-emerald-600 rounded-xl shadow-lg z-0 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
+          "absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-orange-600 rounded-xl shadow-lg z-0 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
           value === "round-trip" ? "translate-x-full" : "translate-x-0"
         )}
       />
@@ -31,7 +31,7 @@ const TripToggle: React.FC<TripToggleProps> = ({ value, onChange }) => {
         onClick={() => onChange("one-way")}
         className={cn(
           "flex-1 flex flex-col items-center justify-center gap-0.5 px-2 z-10 transition-colors duration-500",
-          value === "one-way" ? "text-white" : "text-emerald-900/40 dark:text-emerald-100/40 hover:text-emerald-600"
+          value === "one-way" ? "text-white" : "text-slate-600 hover:text-orange-600"
         )}
       >
         <span className="text-xs lg:text-sm font-black uppercase tracking-tight whitespace-nowrap">One Way</span>
@@ -44,7 +44,7 @@ const TripToggle: React.FC<TripToggleProps> = ({ value, onChange }) => {
         onClick={() => onChange("round-trip")}
         className={cn(
           "flex-1 flex flex-col items-center justify-center gap-0.5 px-2 z-10 transition-colors duration-500",
-          value === "round-trip" ? "text-white" : "text-emerald-900/40 dark:text-emerald-100/40 hover:text-emerald-600"
+          value === "round-trip" ? "text-white" : "text-slate-600 hover:text-orange-600"
         )}
       >
         <span className="text-xs lg:text-sm font-black uppercase tracking-tight whitespace-nowrap">Round Trip</span>
