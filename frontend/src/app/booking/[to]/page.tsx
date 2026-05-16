@@ -626,16 +626,16 @@ const BookingPage = () => {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Full Name</label>
-                    <input type="text" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 text-sm font-bold" placeholder="Enter name" />
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Full Name</label>
+                    <input type="text" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Enter name" />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Age</label>
-                    <input type="number" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 text-sm font-bold" placeholder="Age" />
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Age</label>
+                    <input type="number" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Age" />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Gender</label>
-                    <select className="w-full h-14 bg-white border border-slate-100 rounded-xl px-6 text-sm font-bold appearance-none">
+                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender</label>
+                    <select className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 appearance-none">
                       <option>{gender}</option>
                       <option>Male</option>
                       <option>Female</option>
@@ -660,17 +660,17 @@ const BookingPage = () => {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-10">
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone Number</label>
-              <div className="flex gap-4">
-                <div className="w-24 h-20 bg-[#F8FAFC] border border-slate-100 rounded-2xl flex items-center justify-center text-[11px] font-black uppercase tracking-widest text-slate-500">IN +91</div>
-                <input type="tel" className="flex-1 h-20 bg-[#F8FAFC] border border-slate-100 rounded-2xl px-8 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="Enter 10 digit number" />
+          <div className="grid md:grid-cols-2 gap-6 lg:gap-10">
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Phone Number</label>
+              <div className="flex gap-3 lg:gap-4">
+                <div className="w-20 lg:w-24 h-14 lg:h-16 bg-[#F8FAFC] border border-slate-100 rounded-2xl flex items-center justify-center text-[10px] lg:text-[11px] font-black uppercase tracking-widest text-slate-600">IN +91</div>
+                <input type="tel" className="flex-1 w-full min-w-0 h-14 lg:h-16 bg-[#F8FAFC] border border-slate-100 rounded-2xl px-4 lg:px-6 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="Enter 10 digit number" />
               </div>
             </div>
-            <div className="space-y-4">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email Address</label>
-              <input type="email" className="w-full h-20 bg-[#F8FAFC] border border-slate-100 rounded-2xl px-8 text-sm font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="example@gmail.com" />
+            <div className="space-y-3">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address</label>
+              <input type="email" className="w-full h-14 lg:h-16 bg-[#F8FAFC] border border-slate-100 rounded-2xl px-4 lg:px-6 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="example@gmail.com" />
             </div>
           </div>
         </div>
