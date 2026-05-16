@@ -158,7 +158,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               <select
                 value={localPackage}
                 onChange={(e) => setLocalPackage(e.target.value)}
-                className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer group-hover:border-emerald-500/20"
+                className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all font-bold appearance-none cursor-pointer group-hover:border-emerald-500/20"
               >
                 <option className="bg-white text-slate-900 font-bold">8 Hours / 80 KM</option>
                 <option className="bg-white text-slate-900 font-bold">10 Hours / 100 KM</option>
@@ -175,7 +175,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
-              <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
+              <div suppressHydrationWarning className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
                 {format(departureDate, "MMM dd, hh:mm a")}
               </div>
             </div>
@@ -185,7 +185,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               onClick={handleSearch}
               disabled={!isFormValid()}
               className={cn(
-                "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
+                "w-full h-14 lg:h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
                   : "bg-slate-100 text-slate-500 cursor-not-allowed"
@@ -213,7 +213,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
           />
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Trip Direction</label>
-            <div className="flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl w-full relative h-16">
+            <div className="flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl w-full relative h-14 lg:h-16">
               <div className={cn("absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-orange-600 rounded-xl shadow-lg z-0 transition-all duration-300", airportTrip === "to-airport" ? "translate-x-full" : "translate-x-0")} />
               <button onClick={() => setAirportTrip("from-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "from-airport" ? "text-white" : "text-slate-600")}>From Airport</button>
               <button onClick={() => setAirportTrip("to-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "to-airport" ? "text-white" : "text-slate-600")}>To Airport</button>
@@ -225,7 +225,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
-              <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
+              <div suppressHydrationWarning className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
                 {format(departureDate, "MMM dd, hh:mm a")}
               </div>
             </div>
@@ -235,7 +235,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               onClick={handleSearch}
               disabled={!isFormValid()}
               className={cn(
-                "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
+                "w-full h-14 lg:h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
                   : "bg-slate-100 text-slate-500 cursor-not-allowed"
@@ -348,7 +348,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
-              <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
+              <div suppressHydrationWarning className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
                 {format(departureDate, "MMM dd, hh:mm a")}
               </div>
             </div>
@@ -359,7 +359,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-orange-500 transition-colors">
                 <Calendar className="w-5 h-5" />
               </div>
-              <div suppressHydrationWarning className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
+              <div suppressHydrationWarning className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-4 flex items-center text-slate-900 font-black group-hover:border-emerald-500/20">
                 {format(returnDate, "MMM dd, hh:mm a")}
               </div>
             </div>
@@ -369,7 +369,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
               onClick={handleSearch}
               disabled={!isFormValid()}
               className={cn(
-                "w-full h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
+                "w-full h-14 lg:h-16 rounded-2xl font-black text-lg transition-all flex items-center justify-center gap-3 border-none shadow-xl",
                 isFormValid()
                   ? "bg-gradient-orange hover:shadow-orange-600/30 hover:scale-[1.02] active:scale-95 text-white"
                   : "bg-slate-200 text-slate-500 cursor-not-allowed"

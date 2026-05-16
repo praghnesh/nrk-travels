@@ -141,7 +141,7 @@ const LocationInput: React.FC<LocationInputProps> = ({
           onChange={handleInputChange}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-12 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white transition-all font-bold disabled:bg-slate-100 disabled:cursor-not-allowed"
+          className="w-full h-14 lg:h-16 bg-slate-50 border border-slate-200 rounded-2xl pl-12 pr-12 text-slate-900 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500/10 focus:border-orange-500 focus:bg-white transition-all font-bold disabled:bg-slate-100 disabled:cursor-not-allowed"
         />
 
         <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">

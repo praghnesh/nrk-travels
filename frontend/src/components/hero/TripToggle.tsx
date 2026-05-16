@@ -18,7 +18,7 @@ interface TripToggleProps {
 
 const TripToggle: React.FC<TripToggleProps> = ({ value, onChange }) => {
   return (
-    <div className="flex bg-slate-50 p-1.5 rounded-2xl w-full relative h-16 lg:h-20 border border-slate-200">
+    <div className="flex bg-slate-50 p-1.5 rounded-2xl w-full relative h-14 lg:h-16 border border-slate-200">
       {/* Animated Background Slide */}
       <div
         className={cn(
