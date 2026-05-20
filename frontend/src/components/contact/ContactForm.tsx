@@ -94,8 +94,8 @@ const ContactForm = () => {
                 <p className="text-xs text-slate-400 font-medium">Speak with our team instantly</p>
               </div>
             </div>
-            <a href="tel:+919966363662" className="block w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center transition-all shadow-lg shadow-emerald-600/10">
-              Call +91-9966363662
+            <a href="tel:+919111989222" className="block w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center transition-all shadow-lg shadow-emerald-600/10">
+              Call +91-9111989222
             </a>
           </div>
 
@@ -110,7 +110,7 @@ const ContactForm = () => {
                 <p className="text-xs text-slate-400 font-medium">Quick responses via WhatsApp</p>
               </div>
             </div>
-            <a href="https://wa.me/919966363662" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-center transition-all shadow-lg shadow-emerald-500/10">
+            <a href="https://wa.me/919111989222" target="_blank" rel="noopener noreferrer" className="block w-full py-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-center transition-all shadow-lg shadow-emerald-500/10">
               Chat on WhatsApp
             </a>
           </div>
@@ -126,7 +126,7 @@ const ContactForm = () => {
                 <p className="text-xs text-slate-400 font-medium">Detailed support via email</p>
               </div>
             </div>
-            <a href="mailto:support@vizagtaxihub.com" className="block w-full py-4 rounded-xl bg-slate-100 dark:bg-emerald-900/20 text-slate-700 dark:text-emerald-100 font-bold text-center hover:bg-slate-200 dark:hover:bg-emerald-900/40 transition-all">
+            <a href="mailto:info@nrtravels.com" className="block w-full py-4 rounded-xl bg-slate-100 dark:bg-emerald-900/20 text-slate-700 dark:text-emerald-100 font-bold text-center hover:bg-slate-200 dark:hover:bg-emerald-900/40 transition-all">
               Send Email
             </a>
           </div>

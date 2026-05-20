@@ -11,6 +11,7 @@ import "./globals.css";
 import React, { Suspense } from "react";
 import Navbar from "@/components/navbar/Navbar";
 import BottomNav from "@/components/navbar/BottomNav";
+import Footer from "@/components/layout/Footer";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -54,6 +55,7 @@ export default function RootLayout({
               {children}
             </Suspense>
           </div>
+          <Footer />
           <BottomNav />
         </Providers>
       </body>

@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Shield, Users, Clock, MapPin, Award, Star, Heart } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import OurStory from "@/components/about/OurStory";
 import { cn } from "@/lib/utils";
@@ -137,8 +136,7 @@ const AboutPage = () => {
       {/* Our Story Section */}
       <OurStory />
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

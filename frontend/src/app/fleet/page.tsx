@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import { Shield, Users, Luggage, Gauge, CheckCircle2, Star } from "lucide-react";
 import Link from "next/link";
 import { ROUTES } from "@/lib/navigation";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { cn } from "@/lib/utils";
 
@@ -220,7 +219,7 @@ const FleetPage = () => {
                 <p className="text-emerald-100/60 font-medium mb-10 leading-relaxed">Whether it's a high-profile corporate event, a wedding, or a cross-country tour, our logistics experts can curate a custom fleet for your specific needs.</p>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Link href={ROUTES.CONTACT} className="px-8 py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-center transition-all">Get Custom Quote</Link>
-                  <a href="tel:+919966363662" className="px-8 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-center border border-white/10 transition-all">Call Concierge</a>
+                  <a href="tel:+919111989222" className="px-8 py-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-center border border-white/10 transition-all">Call Concierge</a>
                 </div>
               </div>
             </SectionReveal>
@@ -228,8 +227,7 @@ const FleetPage = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

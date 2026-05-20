@@ -16,7 +16,6 @@ const tabs = [
   { id: "outstation", label: "Outstation", sub: "Trips", icon: Car },
   { id: "local", label: "Hourly", sub: "Rentals", icon: Clock },
   { id: "airport", label: "Airport", sub: "Transfer", icon: Plane },
-  { id: "tour", label: "Tour", sub: "Packages", icon: Map },
 ];
 
 interface BookingTabsProps {

@@ -7,7 +7,6 @@ import {
   Send, CheckCircle2, Sparkles, PhoneCall,
   Globe, Camera, Share2
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -15,11 +14,11 @@ import { cn } from "@/lib/utils";
 const contactChannels = [
   {
     title: "Call Direct",
-    info: "+91 9966363662",
+    info: "+91 9111989222",
     desc: "For urgent bookings and SOS",
     icon: PhoneCall,
     color: "bg-emerald-600",
-    href: "tel:+919966363662"
+    href: "tel:+919111989222"
   },
   {
     title: "WhatsApp",
@@ -27,15 +26,15 @@ const contactChannels = [
     desc: "Quick responses in < 5 mins",
     icon: MessageCircle,
     color: "bg-emerald-500",
-    href: "https://wa.me/919966363662"
+    href: "https://wa.me/919111989222"
   },
   {
     title: "Email Support",
-    info: "info@vizagtaxihub.com",
+    info: "info@nrtravels.com",
     desc: "Detailed tour inquiries",
     icon: Mail,
     color: "bg-orange-500",
-    href: "mailto:info@vizagtaxihub.com"
+    href: "mailto:info@nrtravels.com"
   }
 ];
 
@@ -294,8 +293,7 @@ const ContactPage = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

@@ -7,7 +7,6 @@ import {
   Award, Sparkles, CheckCircle2, TrendingUp,
   ShieldCheck, Users, Rocket
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { cn } from "@/lib/utils";
 
@@ -186,8 +185,7 @@ const VisionPage = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

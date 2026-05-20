@@ -13,7 +13,6 @@ import {
   Mail,
   ArrowRight
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { Button } from "@/components/ui/button";
 import BookDriverForm from "@/components/booking/BookDriverForm";
@@ -120,7 +119,7 @@ const HireDriverPage = () => {
             <div className="pt-8 md:pt-12">
               <Button className="h-14 md:h-20 px-6 md:px-14 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm md:text-2xl shadow-2xl shadow-emerald-500/30 flex items-center gap-2 md:gap-5 mx-auto transition-all active:scale-95 group whitespace-nowrap">
                 <Phone className="size-5 md:size-8 group-hover:rotate-12 transition-transform shrink-0" />
-                Call Now: +91 9966363662
+                Call Now: +91 9111989222
               </Button>
             </div>
           </SectionReveal>
@@ -258,15 +257,15 @@ const HireDriverPage = () => {
               Our customer support team is available 24/7 to help you find the perfect driver for your journey.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6">
-              <a href="tel:+919966363662" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-emerald-600 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:scale-105 transition-all shadow-xl shadow-emerald-900/20">
+              <a href="tel:+919111989222" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white text-emerald-600 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:scale-105 transition-all shadow-xl shadow-emerald-900/20">
                 <Phone className="size-5 md:size-7" />
-                Call: +91 9966363662
+                Call: +91 9111989222
               </a>
-              <a href="https://wa.me/919966363662" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:bg-white/20 transition-all">
+              <a href="https://wa.me/919111989222" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:bg-white/20 transition-all">
                 <MessageCircle className="size-5 md:size-7" />
                 WhatsApp
               </a>
-              <a href="mailto:support@nrktravels.com" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:bg-white/20 transition-all">
+              <a href="mailto:info@nrtravels.com" className="w-full sm:w-auto flex items-center justify-center gap-3 bg-white/10 backdrop-blur-md text-white border border-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-black text-base md:text-lg hover:bg-white/20 transition-all">
                 <Mail className="size-5 md:size-7" />
                 Email
               </a>
@@ -275,8 +274,7 @@ const HireDriverPage = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

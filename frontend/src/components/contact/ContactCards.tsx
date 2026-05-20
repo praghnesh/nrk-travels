@@ -8,14 +8,26 @@ import { cn } from "@/lib/utils";
 const contactOptions = [
   {
     title: "Phone Support",
-    value: "+91-9966363662",
+    value: (
+      <>
+        <a href="tel:+919111989222" className="hover:underline">+91 9111989222</a>
+        <br />
+        <a href="tel:+918889994886" className="hover:underline">+91 8889994886</a>
+      </>
+    ),
     info: "24/7 Available",
     icon: Phone,
     color: "bg-emerald-500",
   },
   {
     title: "Email Support",
-    value: "support@vizagtaxihub.com",
+    value: (
+      <>
+        <a href="mailto:info@nrtravels.com" className="hover:underline">info@nrtravels.com</a>
+        <br />
+        <a href="mailto:nrktravels.in@gmail.com" className="hover:underline text-xs">nrktravels.in@gmail.com</a>
+      </>
+    ),
     info: "Response within 2 hours",
     icon: Mail,
     color: "bg-orange-500",
@@ -29,7 +41,13 @@ const contactOptions = [
   },
   {
     title: "WhatsApp Chat",
-    value: "+91-9966363662",
+    value: (
+      <>
+        <a href="https://wa.me/919111989222" target="_blank" rel="noopener noreferrer" className="hover:underline">+91 9111989222</a>
+        <br />
+        <a href="https://wa.me/918889994886" target="_blank" rel="noopener noreferrer" className="hover:underline">+91 8889994886</a>
+      </>
+    ),
     info: "Quick responses",
     icon: MessageCircle,
     color: "bg-emerald-400",
@@ -68,7 +86,7 @@ const ContactCards = () => {
             </div>
             
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">{option.title}</h3>
-            <p className="text-emerald-600 dark:text-emerald-400 font-bold mb-4 text-sm break-all">{option.value}</p>
+            <div className="text-emerald-600 dark:text-emerald-400 font-bold mb-4 text-sm break-all whitespace-pre-line leading-relaxed">{option.value}</div>
             <span className="text-xs font-medium text-slate-400 dark:text-emerald-100/40 uppercase tracking-widest">{option.info}</span>
           </div>
         </motion.div>

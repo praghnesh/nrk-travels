@@ -8,7 +8,6 @@ import {
   HelpCircle, ShieldAlert, ArrowRight, Wallet,
   Calendar, Car, Plane
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -189,8 +188,7 @@ const RefundPolicy = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

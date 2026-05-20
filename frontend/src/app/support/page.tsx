@@ -8,7 +8,6 @@ import {
   Phone, Mail, ArrowRight, ShieldCheck, Clock,
   HelpCircle, UserCheck, Star, Sparkles
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -125,10 +124,10 @@ const SupportOverview = () => {
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <a href="tel:+919966363662" className="px-8 py-4 bg-slate-900 hover:bg-slate-800 rounded-2xl font-black flex items-center gap-3 transition-all shadow-xl">
-                <Phone className="w-5 h-5" /> SOS +91 9966363662
+              <a href="tel:+919111989222" className="px-8 py-4 bg-slate-900 hover:bg-slate-800 rounded-2xl font-black flex items-center gap-3 transition-all shadow-xl">
+                <Phone className="w-5 h-5" /> SOS +91 9111989222
               </a>
-              <a href="https://wa.me/919966363662" className="px-8 py-4 bg-white text-orange-600 hover:bg-orange-50 rounded-2xl font-black flex items-center gap-3 transition-all shadow-xl">
+              <a href="https://wa.me/919111989222" className="px-8 py-4 bg-white text-orange-600 hover:bg-orange-50 rounded-2xl font-black flex items-center gap-3 transition-all shadow-xl">
                 <MessageCircle className="w-5 h-5" /> Rapid WhatsApp
               </a>
             </div>
@@ -245,8 +244,7 @@ const SupportOverview = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

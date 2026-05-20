@@ -34,8 +34,6 @@ import {
 } from "lucide-react";
 import { FLEET_DATA } from "@/lib/fleet";
 import { DESTINATIONS } from "@/lib/destinations";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/layout/Footer";
 import SeatSelection from "@/components/booking/SeatSelection";
 import DestinationsSection from "@/components/tours/DestinationsSection";
 import { cn } from "@/lib/utils";
@@ -1761,14 +1759,11 @@ const BookingPageContent = () => {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
       <section className="pt-28 lg:pt-36 pb-20 px-6 lg:px-12">
         <div className="max-w-[1400px] mx-auto">
           {destination.type === "tour" ? renderTourLayout() : renderOutstationLayout()}
         </div>
       </section>
-      <Footer />
-
       <AnimatePresence>
         {isProcessing && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl">

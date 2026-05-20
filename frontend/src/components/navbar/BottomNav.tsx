@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils";
 const BottomNav = () => {
   const links = [
     { name: "Home", icon: Home, href: "/" },
-    { name: "WhatsApp", icon: MessageCircle, href: "https://wa.me/9966363662" },
-    { name: "Call", icon: Phone, href: "tel:9966363662" },
+    { name: "WhatsApp", icon: MessageCircle, href: "https://wa.me/9111989222" },
+    { name: "Call", icon: Phone, href: "tel:9111989222" },
     { name: "Profile", icon: User, href: "#" },
   ];
 

@@ -9,6 +9,8 @@ interface SeatSelectionProps {
   pricePerSeat: string | number;
   onConfirm: (selectedSeats: Record<number, string>) => void;
   onBack: () => void;
+  selectedSeats?: Record<number, string>;
+  onSeatsChange?: (selectedSeats: Record<number, string>) => void;
 }
 
 const SeatButton = ({ id, status, onClick, price, gender }: {
@@ -47,8 +49,17 @@ const SeatButton = ({ id, status, onClick, price, gender }: {
   </button>
 );
 
-const SeatSelection = ({ totalSeats, pricePerSeat, onConfirm, onBack }: SeatSelectionProps) => {
-  const [selectedSeats, setSelectedSeats] = useState<Record<number, string>>({});
+const SeatSelection = ({ 
+  totalSeats, 
+  pricePerSeat, 
+  onConfirm, 
+  onBack,
+  selectedSeats: propSelectedSeats,
+  onSeatsChange
+}: SeatSelectionProps) => {
+  const [localSelectedSeats, setLocalSelectedSeats] = useState<Record<number, string>>({});
+  const isControlled = propSelectedSeats !== undefined;
+  const selectedSeats = isControlled ? propSelectedSeats : localSelectedSeats;
   const [gender, setGender] = useState<string>("male");
 
   const BOOKED_SEATS: number[] = []; // Clear simulated booked seats
@@ -57,15 +68,20 @@ const SeatSelection = ({ totalSeats, pricePerSeat, onConfirm, onBack }: SeatSele
   const toggleSeat = (id: number) => {
     if (BOOKED_SEATS.includes(id) || RESERVED_SEATS.includes(id)) return;
 
-    setSelectedSeats(prev => {
-      const next = { ...prev };
-      if (next[id]) {
-        delete next[id];
-      } else {
-        next[id] = gender || "male";
+    const next = { ...selectedSeats };
+    if (next[id]) {
+      delete next[id];
+    } else {
+      next[id] = gender || "male";
+    }
+
+    if (isControlled) {
+      if (onSeatsChange) {
+        onSeatsChange(next);
       }
-      return next;
-    });
+    } else {
+      setLocalSelectedSeats(next);
+    }
   };
 
   const totalFare = Object.keys(selectedSeats).length * (typeof pricePerSeat === 'string' ? parseInt(pricePerSeat.replace(/,/g, "")) : pricePerSeat);

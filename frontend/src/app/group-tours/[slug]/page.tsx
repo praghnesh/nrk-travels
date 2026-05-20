@@ -15,8 +15,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GROUP_TOURS_DATA, GroupTour } from "@/lib/tours";
-import Footer from "@/components/layout/Footer";
-
 const GroupTourDetailsPage = () => {
   const params = useParams();
   const slug = params.slug as string;
@@ -699,14 +697,16 @@ const GroupTourDetailsPage = () => {
                               name: "Tempo Traveller",
                               seats: 17,
                               rate: 35,
-                              desc: "Pushback seats, premium audio, A/C"
+                              desc: "Pushback seats, premium audio, A/C",
+                              emoji: "🚐"
                             },
                             {
                               id: "urbania",
                               name: "Force Urbania",
                               seats: 16,
                               rate: 40,
-                              desc: "Ultra-luxury, wide window view, dual A/C"
+                              desc: "Ultra-luxury, wide window view, dual A/C",
+                              emoji: "🚌"
                             }
                           ].map((vehicle) => {
                             const vehicleTotal = calculatedDistance * 2 * vehicle.rate;
@@ -716,22 +716,28 @@ const GroupTourDetailsPage = () => {
                             return (
                               <button
                                 key={vehicle.id}
-                                onClick={() => setSelectedVehicle(vehicle.id)}
+                                onClick={() => {
+                                  setSelectedVehicle(vehicle.id);
+                                  changeStep("seats");
+                                }}
                                 className={cn(
-                                  "w-full p-5 rounded-[1.8rem] border text-left transition-all duration-300 relative overflow-hidden group/card",
+                                  "w-full p-5 rounded-[1.8rem] border text-left transition-all duration-300 relative overflow-hidden group/card active:scale-[0.98]",
                                   isSelected
                                     ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/10"
-                                    : "bg-slate-50 border-slate-100 hover:bg-slate-100/50 hover:border-slate-200"
+                                    : "bg-slate-50 border-slate-100 hover:bg-emerald-50 hover:border-emerald-200"
                                 )}
                               >
                                 <div className="flex justify-between items-start gap-4">
-                                  <div>
-                                    <h4 className={cn("text-sm font-black uppercase tracking-tight", isSelected ? "text-white" : "text-slate-800")}>
-                                      {vehicle.name}
-                                    </h4>
-                                    <p className={cn("text-[9px] font-bold mt-0.5", isSelected ? "text-slate-400" : "text-slate-500")}>
-                                      {vehicle.seats} Seats • A/C
-                                    </p>
+                                  <div className="flex items-center gap-3">
+                                    <span className="text-2xl">{vehicle.emoji}</span>
+                                    <div>
+                                      <h4 className={cn("text-sm font-black uppercase tracking-tight", isSelected ? "text-white" : "text-slate-800")}>
+                                        {vehicle.name}
+                                      </h4>
+                                      <p className={cn("text-[9px] font-bold mt-0.5", isSelected ? "text-slate-400" : "text-slate-500")}>
+                                        {vehicle.seats} Seats • A/C
+                                      </p>
+                                    </div>
                                   </div>
                                   <div className="text-right">
                                     <span className={cn("text-xs font-black", isSelected ? "text-emerald-400" : "text-emerald-600")}>
@@ -761,22 +767,19 @@ const GroupTourDetailsPage = () => {
                                     ₹{perHead}/head
                                   </div>
                                 </div>
+
+                                {/* Tap to book indicator */}
+                                <div className={cn(
+                                  "mt-3 pt-3 border-t flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest transition-colors",
+                                  isSelected ? "border-white/10 text-emerald-400" : "border-slate-100 text-slate-400 group-hover/card:text-emerald-600"
+                                )}>
+                                  <Users className="w-3 h-3" />
+                                  Tap to Select Seats & Pay
+                                </div>
                               </button>
                             );
                           })}
                         </div>
-
-                        {/* Rent Action Button */}
-                        <button
-                          onClick={() => {
-                            changeStep("checkout");
-                          }}
-                          className="w-full py-6 rounded-2xl bg-emerald-600 text-white text-sm font-black uppercase tracking-[0.2em] hover:bg-emerald-700 shadow-2xl shadow-emerald-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group/btn relative z-10"
-                        >
-                          <Car className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                          Proceed to Booking
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
                       </div>
                     )}
 
@@ -808,6 +811,18 @@ const GroupTourDetailsPage = () => {
                     </div>
                     Back to Tour Details
                   </button>
+
+                  {/* Vehicle Selected Banner (for full-vehicle mode) */}
+                  {bookingType === "full-vehicle" && (
+                    <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-900 text-white">
+                      <span className="text-2xl">{selectedVehicle === "urbania" ? "🚌" : "🚐"}</span>
+                      <div className="flex-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Selected Vehicle</p>
+                        <p className="text-sm font-black">{selectedVehicle === "urbania" ? "Force Urbania — 16 Seats" : "Tempo Traveller — 17 Seats"}</p>
+                      </div>
+                      <p className="text-sm font-black text-emerald-400">₹{totalFullVehicleFare.toLocaleString("en-IN")}</p>
+                    </div>
+                  )}
 
                   <div className="bg-white rounded-[2.5rem] p-8 lg:p-12 border border-slate-100 shadow-sm space-y-8">
                     <div className="flex flex-col md:flex-row justify-between gap-6">
@@ -1017,13 +1032,13 @@ const GroupTourDetailsPage = () => {
                   Our travel experts are available 24/7 to help you plan your spiritual journey.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 relative">
-                  <a href="tel:+919966363662" className="flex-1 flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+                  <a href="tel:+919111989222" className="flex-1 flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
                       <Phone className="w-5 h-5" />
                     </div>
-                    <span className="text-sm font-bold">+91 9966363662</span>
+                    <span className="text-sm font-bold">+91 9111989222</span>
                   </a>
-                  <a href="https://wa.me/919966363662" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
+                  <a href="https://wa.me/919111989222" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all">
                     <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center">
                       <MessageCircle className="w-5 h-5" />
                     </div>
@@ -1278,21 +1293,14 @@ const GroupTourDetailsPage = () => {
             </p>
           </div>
           <button
-            onClick={() => {
-              if (bookingType === "full-vehicle") {
-                changeStep("checkout");
-              } else {
-                changeStep("seats");
-              }
-            }}
+            onClick={() => changeStep("seats")}
             className="px-10 h-14 rounded-2xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-[0.2em] hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 active:scale-95 transition-all"
           >
-            {bookingType === "full-vehicle" ? "Rent Vehicle" : "Select Seats"}
+            {bookingType === "full-vehicle" ? "Select Vehicle & Seats" : "Select Seats"}
           </button>
         </div>
       )}
 
-      <Footer />
       <div className="h-24 lg:hidden" />
     </main>
   );

@@ -8,7 +8,6 @@ import {
   ChevronDown, ChevronRight, HelpCircle, Sparkles,
   ShieldAlert, UserCheck, Phone, MessageCircle, ArrowRight
 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,7 @@ const helpData = [
     title: "Payment Problems",
     icon: CreditCard,
     faqs: [
-      { q: "My transaction failed but money was deducted.", a: "Usually, banks revert failed transactions within 24-48 hours. Please send your transaction ID to support@vizagtaxihub.com if it doesn't revert." },
+      { q: "My transaction failed but money was deducted.", a: "Usually, banks revert failed transactions within 24-48 hours. Please send your transaction ID to info@nrtravels.com if it doesn't revert." },
       { q: "Are toll and parking charges included in the fare?", a: "For local rentals, no. For outstation packages, it depends on the package selected. Clear details are shown during the booking process." }
     ]
   },
@@ -144,7 +143,7 @@ const HelpCenterPage = () => {
                 <HelpCircle className="w-8 h-8 mb-4 opacity-50" />
                 <h4 className="text-xl font-black mb-2">Can't Find it?</h4>
                 <p className="text-orange-50 text-xs font-bold leading-relaxed mb-6">Talk to our concierge team directly via WhatsApp.</p>
-                <a href="https://wa.me/919966363662" className="block w-full py-3 bg-white text-orange-600 rounded-xl text-xs font-black uppercase tracking-widest text-center">
+                <a href="https://wa.me/919111989222" className="block w-full py-3 bg-white text-orange-600 rounded-xl text-xs font-black uppercase tracking-widest text-center">
                   Chat Now
                 </a>
               </div>
@@ -250,10 +249,10 @@ const HelpCenterPage = () => {
                   Our elite support squad is available around the clock for complex inquiries or special requests.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                  <a href="/contact" className="px-10 py-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg transition-all shadow-xl shadow-emerald-600/20 group">
+                  <Link href="/contact" className="px-10 py-5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-lg transition-all shadow-xl shadow-emerald-600/20 group">
                     Email Support Team <ArrowRight className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                  <a href="https://wa.me/919966363662" className="px-10 py-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-lg transition-all flex items-center justify-center gap-3">
+                  </Link>
+                  <a href="https://wa.me/919111989222" className="px-10 py-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-lg transition-all flex items-center justify-center gap-3">
                     <MessageCircle className="w-6 h-6 text-emerald-400" /> WhatsApp Chat
                   </a>
                 </div>
@@ -263,8 +262,7 @@ const HelpCenterPage = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

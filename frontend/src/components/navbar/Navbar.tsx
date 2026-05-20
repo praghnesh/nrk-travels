@@ -11,6 +11,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from "next/navigation";
 import { Menu, Phone, ChevronDown, Car, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,12 @@ const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setActiveMegaMenu(null);
+    setIsMobileOpen(false);
+  }, [pathname]);
 
   const toggleMenu = (e: React.MouseEvent, menuName: string) => {
     e.preventDefault();
@@ -160,7 +167,7 @@ const Navbar = () => {
           {/* Actions */}
           <div className="hidden lg:flex items-center gap-4">
             <a
-              href="tel:9966363662"
+              href="tel:9111989222"
               className={cn(
                 "flex items-center gap-2 px-5 py-2 rounded-full border-2 transition-all duration-300 font-bold text-xs tracking-tight",
                 isScrolled
@@ -169,7 +176,7 @@ const Navbar = () => {
               )}
             >
               <Phone className="w-3.5 h-3.5" />
-              9966363662
+              9111989222
             </a>
 
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200 ml-2">

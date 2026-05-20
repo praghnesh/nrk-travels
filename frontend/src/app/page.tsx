@@ -16,8 +16,6 @@ import TrustSection from "@/components/about/TrustSection";
 import CTASection from "@/components/about/CTASection";
 import TestimonialsSection from "@/components/testimonials/TestimonialsSection";
 import SocialSection from "@/components/social/SocialSection";
-import Footer from "@/components/layout/Footer";
-
 import { SectionReveal } from "@/components/ui/SectionReveal";
 
 export default function Home() {
@@ -51,7 +49,6 @@ export default function Home() {
       <SectionReveal>
         <SocialSection />
       </SectionReveal>
-      <Footer />
-    </main>
+      </main>
   );
 }

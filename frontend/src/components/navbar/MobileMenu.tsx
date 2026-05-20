@@ -170,11 +170,11 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                 Sign Up
               </Button>
               <Link
-                href="tel:9966363662"
+                href="tel:9111989222"
                 className="flex items-center justify-center gap-3 w-full h-16 rounded-[2rem] bg-emerald-500/10 text-emerald-600 font-black text-lg border border-emerald-500/20 transition-all active:scale-95"
               >
                 <Phone className="w-5 h-5" />
-                9966363662
+                9111989222
               </Link>
             </div>
           </motion.div>

@@ -61,12 +61,12 @@ const CTASection = () => {
                 Book Now
               </Link>
 
-              <a href="https://wa.me/919966363662" className="bg-[#25D366] text-white px-10 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-xl hover:brightness-110 transition-all hover:scale-105 active:scale-95">
+              <a href="https://wa.me/919111989222" className="bg-[#25D366] text-white px-10 py-5 rounded-2xl font-black text-lg flex items-center gap-3 shadow-xl hover:brightness-110 transition-all hover:scale-105 active:scale-95">
                 <MessageSquare className="w-6 h-6" />
                 WhatsApp
               </a>
 
-              <a href="tel:+919966363662" className="bg-white dark:bg-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/60 border border-emerald-500/10 px-10 py-5 rounded-2xl font-black text-lg flex items-center gap-3 backdrop-blur-sm transition-all text-emerald-950 dark:text-emerald-50">
+              <a href="tel:+919111989222" className="bg-white dark:bg-emerald-900/40 hover:bg-emerald-50 dark:hover:bg-emerald-900/60 border border-emerald-500/10 px-10 py-5 rounded-2xl font-black text-lg flex items-center gap-3 backdrop-blur-sm transition-all text-emerald-950 dark:text-emerald-50">
                 <Phone className="w-6 h-6 text-emerald-600" />
                 Call Expert
               </a>

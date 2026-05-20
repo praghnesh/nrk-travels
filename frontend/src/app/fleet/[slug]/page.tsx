@@ -29,8 +29,6 @@ import {
 } from "lucide-react";
 import { FLEET_DATA } from "@/lib/fleet";
 import { TOURS_DATA } from "@/lib/tours";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { cn } from "@/lib/utils";
 import BookingFlowModal from "@/components/booking/BookingFlowModal";
@@ -70,8 +68,6 @@ const FleetDetailsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
-
       {/* Breadcrumbs */}
       <div className="pt-28 lg:pt-32 px-6 lg:px-12">
         <div className="max-w-[100%] mx-auto flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -393,15 +389,15 @@ const FleetDetailsPage = () => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Our experts are here 24/7</p>
                   </div>
                   <div className="space-y-3 relative">
-                    <a href="tel:+919966363662" className="flex items-center gap-3 text-sm font-black hover:text-emerald-400 transition-colors">
+                    <a href="tel:+919111989222" className="flex items-center gap-3 text-sm font-black hover:text-emerald-400 transition-colors">
                       <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
                         <Phone className="w-4 h-4" />
                       </div>
-                      +91 9966363662
+                      +91 9111989222
                     </a>
                   </div>
                   <a 
-                    href="https://wa.me/919966363662" 
+                    href="https://wa.me/919111989222" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
@@ -414,8 +410,6 @@ const FleetDetailsPage = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
 
       <BookingFlowModal 
         isOpen={isBookingModalOpen} 

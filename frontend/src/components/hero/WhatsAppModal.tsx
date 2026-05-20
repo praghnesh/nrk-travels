@@ -56,7 +56,7 @@ User Phone: +91 ${phoneNumber}
           access_key: "62688863-7188-4663-8833-885441584852", // Placeholder Key - User should replace this
           subject: `New Booking Request from ${phoneNumber}`,
           from_name: "Shannu Car Travels",
-          to_email: "praghnesh8764@gmail.com",
+          to_email: "info@nrtravels.com",
           message: fullDetails,
           phone: phoneNumber,
           ...bookingData
@@ -73,7 +73,7 @@ User Phone: +91 ${phoneNumber}
     } catch (error) {
       console.error("Error sending email:", error);
       // Fallback to Gmail Direct Link if automatic send fails
-      const adminEmail = "praghnesh8764@gmail.com";
+      const adminEmail = "info@nrtravels.com";
       const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(adminEmail)}&su=${encodeURIComponent(`Booking Request ${phoneNumber}`)}&body=${encodeURIComponent(fullDetails)}`;
       window.open(gmailUrl, "_blank");
       toast.info("Automatic send failed. Opening Gmail instead.");

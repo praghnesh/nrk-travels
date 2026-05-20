@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Eye, Lock, Database, UserCheck, Share2, Cookie, Mail, Sparkles, MapPin } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 import SectionReveal from "@/components/ui/SectionReveal";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { cn } from "@/lib/utils";
@@ -136,7 +135,7 @@ const PrivacyPolicy = () => {
                     </div>
                     <div>
                       <span className="block text-[10px] font-black uppercase tracking-widest text-slate-500">Email Us</span>
-                      <span className="font-bold">privacy@vizagtaxihub.com</span>
+                      <span className="font-bold">info@nrtravels.com</span>
                     </div>
                   </div>
                 </div>
@@ -146,8 +145,7 @@ const PrivacyPolicy = () => {
         </div>
       </section>
 
-      <Footer />
-    </main>
+      </main>
   );
 };
 

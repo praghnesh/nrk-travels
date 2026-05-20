@@ -111,7 +111,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
   };
 
   return (
-    <div className="p-4 lg:p-8 space-y-8 relative overflow-hidden bg-transparent">
+    <div className="p-4 lg:p-8 space-y-8 relative overflow-visible bg-transparent">
       {/* Premium Search Overlay */}
       <AnimatePresence>
         {isSearching && (
@@ -256,7 +256,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <button
-              onClick={() => handleTourClick('/booking/araku-valley-tour')}
+              onClick={() => handleTourClick('/tours/araku-valley')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
               <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-emerald-600 shadow-sm transition-colors">
@@ -270,7 +270,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             </button>
 
             <button
-              onClick={() => handleTourClick('/booking/lambasingi-tour')}
+              onClick={() => handleTourClick('/tours/lambasingi')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
               <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-orange-500 shadow-sm transition-colors">
@@ -284,7 +284,7 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
             </button>
 
             <button
-              onClick={() => handleTourClick('/booking/vizag-full-city-tour')}
+              onClick={() => handleTourClick('/tours/vizag-city-tour')}
               className="group flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-emerald-500/20 hover:shadow-xl hover:shadow-emerald-500/5 transition-all text-left"
             >
               <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-slate-600 group-hover:text-blue-600 shadow-sm transition-colors">

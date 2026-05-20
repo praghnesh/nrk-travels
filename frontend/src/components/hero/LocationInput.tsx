@@ -99,13 +99,17 @@ const LocationInput: React.FC<LocationInputProps> = ({
 
   // Click outside to close suggestions
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   // Update suggestions list locally as well as from Nominatim

@@ -27,11 +27,10 @@ import {
   AlertCircle
 } from "lucide-react";
 import { TOURS_DATA, VehicleRate } from "@/lib/tours";
-import Navbar from "@/components/navbar/Navbar";
-import Footer from "@/components/layout/Footer";
+import SeatSelection from "@/components/booking/SeatSelection";
 import { cn } from "@/lib/utils";
 
-type BookingStep = "select" | "summary" | "checkout";
+type BookingStep = "select" | "seats" | "passengers" | "summary" | "checkout";
 
 const TourDetailsPage = () => {
   const { slug } = useParams();
@@ -41,6 +40,8 @@ const TourDetailsPage = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleRate | null>(tour?.vehicleRates[0] || null);
   const [tripMode, setTripMode] = useState<"one-way" | "round-trip">("one-way");
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary" | "policy">("overview");
+  const [selectedSeats, setSelectedSeats] = useState<Record<number, string>>({});
+  const [passengerDetails, setPassengerDetails] = useState<Record<number, { name: string; age: string; gender: string }>>({});
 
   React.useEffect(() => {
     if (tour) {
@@ -48,6 +49,8 @@ const TourDetailsPage = () => {
       setSelectedVehicle(tour.vehicleRates[0] || null);
       setActiveTab("overview");
       setTripMode("one-way");
+      setSelectedSeats({});
+      setPassengerDetails({});
     }
   }, [tour?.slug]);
 
@@ -68,6 +71,52 @@ const TourDetailsPage = () => {
     return parseInt(priceStr.replace(/,/g, ""), 10) || 0;
   };
 
+  const isMultiSeater = selectedVehicle?.model === "Tempo Traveller" || selectedVehicle?.model === "Urbania";
+
+  const getBookingPrice = () => {
+    if (!selectedVehicle) return 0;
+    const baseVal = parsePrice(selectedVehicle.price);
+    if (isMultiSeater) {
+      const seatsCount = Object.keys(selectedSeats).length;
+      if (seatsCount > 0) {
+        const seatCount = selectedVehicle.model === "Tempo Traveller" ? 17 : 16;
+        const pricePerSeat = Math.round(baseVal / seatCount);
+        return seatsCount * pricePerSeat;
+      }
+    }
+    return baseVal;
+  };
+
+  const isPassengerFormValid = () => {
+    if (!isMultiSeater || Object.keys(selectedSeats).length === 0) return true;
+    return Object.keys(selectedSeats).every(seatId => {
+      const sNum = Number(seatId);
+      const details = passengerDetails[sNum];
+      return details && details.name.trim() !== "" && details.age.trim() !== "";
+    });
+  };
+
+  const confirmSeatsAndGoToPassengers = (seats: Record<number, string>) => {
+    setSelectedSeats(seats);
+    const details = { ...passengerDetails };
+    Object.entries(seats).forEach(([seatId, gender]) => {
+      const sNum = Number(seatId);
+      if (!details[sNum]) {
+        details[sNum] = { name: "", age: "", gender };
+      } else {
+        details[sNum].gender = gender;
+      }
+    });
+    Object.keys(details).forEach(seatId => {
+      const sNum = Number(seatId);
+      if (!seats[sNum]) {
+        delete details[sNum];
+      }
+    });
+    setPassengerDetails(details);
+    setBookingStep("passengers");
+  };
+
   if (!tour) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -78,12 +127,24 @@ const TourDetailsPage = () => {
   }
 
   const handleFinalBooking = () => {
+    const hasSeats = isMultiSeater && Object.keys(selectedSeats).length > 0;
+    let seatDetailLine = "";
+    if (hasSeats) {
+      seatDetailLine = `\n*Selected Seats:* ${Object.keys(selectedSeats).map(s => `S${s}`).join(", ")} (${Object.keys(selectedSeats).length} Seats)`;
+      const passengerList = Object.entries(passengerDetails)
+        .map(([seatNum, details]) => {
+          return `- Seat S${seatNum}: ${details.name || "N/A"} (${details.age ? `Age: ${details.age}` : "Age: N/A"}, ${details.gender === "female" ? "Female" : "Male"})`;
+        })
+        .join("\n");
+      seatDetailLine += `\n*Passenger Manifest:*\n${passengerList}`;
+    }
+
     const message = `*NRK TRAVELS - NEW BOOKING REQUEST*
 --------------------------------
 *Package:* ${tour.title}
-*Vehicle:* ${selectedVehicle?.model} (${selectedVehicle?.pax} Seats)
+*Vehicle:* ${selectedVehicle?.model} (${selectedVehicle?.pax} Seats)${seatDetailLine}
 *Trip Mode:* ${tripMode === 'one-way' ? 'One Way' : 'Round Trip'}
-*Total Fare:* ₹${selectedVehicle?.price}
+*Total Fare:* ₹${getBookingPrice().toLocaleString('en-IN')}
 *Payment Plan:* ${paymentOption === 'part' ? 'Part Pay (30%)' : 'Full Pay'}
 
 *Customer Details:*
@@ -95,7 +156,7 @@ ${formData.requirements ? `- Special Req: ${formData.requirements}` : ''}
 --------------------------------
 Please confirm availability and share the payment link.`;
 
-    const whatsappUrl = `https://wa.me/919966363662?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/919111989222?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
 
@@ -150,15 +211,156 @@ Please confirm availability and share the payment link.`;
 
   return (
     <main className="min-h-screen bg-slate-50/30">
-      <Navbar />
-
       <div className="max-w-7xl mx-auto px-4 lg:px-8 pt-24 lg:pt-32 pb-24">
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* Main Content (Left) */}
           <div className="flex-1 space-y-8">
             <AnimatePresence mode="wait">
-              {bookingStep !== "checkout" ? (
+              {bookingStep === "seats" ? (
+                <motion.div
+                  key="seat-selection"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                >
+                  <SeatSelection
+                    totalSeats={selectedVehicle?.model === "Tempo Traveller" ? 17 : 16}
+                    pricePerSeat={Math.round(parsePrice(selectedVehicle?.price || "0") / (selectedVehicle?.model === "Tempo Traveller" ? 17 : 16))}
+                    selectedSeats={selectedSeats}
+                    onSeatsChange={setSelectedSeats}
+                    onConfirm={confirmSeatsAndGoToPassengers}
+                    onBack={() => {
+                      setBookingStep("select");
+                    }}
+                  />
+                </motion.div>
+              ) : bookingStep === "passengers" ? (
+                <motion.div
+                  key="passenger-details"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="space-y-8"
+                >
+                  <div className="bg-white rounded-[2.5rem] p-8 lg:p-12 border border-slate-100 shadow-sm space-y-10">
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Passenger Details</h3>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                          Enter name and age for each selected seat
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-8">
+                      {Object.keys(selectedSeats).sort((a, b) => Number(a) - Number(b)).map((seatId) => {
+                        const sNum = Number(seatId);
+                        const details = passengerDetails[sNum] || { name: "", age: "", gender: selectedSeats[sNum] };
+                        return (
+                          <div key={seatId} className="p-6 md:p-8 rounded-[2rem] bg-slate-50/50 border border-slate-100 space-y-6">
+                            <div className="flex items-center justify-between">
+                              <span className={cn(
+                                "px-4 py-1.5 rounded-lg text-white text-[10px] font-black uppercase tracking-widest shadow-sm",
+                                details.gender === "female" ? "bg-rose-600" : "bg-blue-600"
+                              )}>
+                                Seat S{seatId} — {details.gender === "female" ? "Female" : "Male"}
+                              </span>
+                            </div>
+
+                            <div className="grid md:grid-cols-3 gap-6">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
+                                <input
+                                  type="text"
+                                  placeholder="Enter traveler's name"
+                                  value={details.name}
+                                  onChange={(e) => {
+                                    setPassengerDetails({
+                                      ...passengerDetails,
+                                      [sNum]: { ...details, name: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full h-14 bg-white border border-slate-100 rounded-2xl px-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Age</label>
+                                <input
+                                  type="number"
+                                  placeholder="Age"
+                                  min="1"
+                                  max="120"
+                                  value={details.age}
+                                  onChange={(e) => {
+                                    setPassengerDetails({
+                                      ...passengerDetails,
+                                      [sNum]: { ...details, age: e.target.value }
+                                    });
+                                  }}
+                                  className="w-full h-14 bg-white border border-slate-100 rounded-2xl px-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
+                                />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Gender</label>
+                                <select
+                                  value={details.gender}
+                                  onChange={(e) => {
+                                    setPassengerDetails({
+                                      ...passengerDetails,
+                                      [sNum]: { ...details, gender: e.target.value }
+                                    });
+                                    setSelectedSeats({
+                                      ...selectedSeats,
+                                      [sNum]: e.target.value
+                                    });
+                                  }}
+                                  className="w-full h-14 bg-white border border-slate-100 rounded-2xl px-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-sm"
+                                >
+                                  <option value="male">Male</option>
+                                  <option value="female">Female</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="pt-8 border-t border-slate-100 space-y-4">
+                      <button
+                        onClick={() => {
+                          if (isPassengerFormValid()) {
+                            setBookingStep("summary");
+                          }
+                        }}
+                        disabled={!isPassengerFormValid()}
+                        className={cn(
+                          "w-full h-16 rounded-2xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest transition-all shadow-xl",
+                          isPassengerFormValid()
+                            ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
+                            : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
+                        )}
+                      >
+                        <CheckCircle2 className="w-5 h-5" />
+                        Continue to Summary
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+
+                      <button
+                        onClick={() => setBookingStep("seats")}
+                        className="w-full h-16 rounded-2xl border-2 border-slate-100 text-slate-900 text-[11px] font-black uppercase tracking-widest hover:bg-slate-50 flex items-center justify-center gap-2 transition-all"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back to Seat Selection
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : bookingStep !== "checkout" ? (
                 <motion.div
                   key="tour-details"
                   initial={{ opacity: 0, y: 20 }}
@@ -445,7 +647,7 @@ Please confirm availability and share the payment link.`;
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay 30% now, rest to the driver</p>
                             </div>
                           </div>
-                          <p className="text-lg font-black text-slate-900">₹{Math.round(parsePrice(selectedVehicle?.price || "0") * 0.3).toLocaleString('en-IN')}</p>
+                          <p className="text-lg font-black text-slate-900">₹{Math.round(getBookingPrice() * 0.3).toLocaleString('en-IN')}</p>
                         </button>
 
                         <button
@@ -464,7 +666,7 @@ Please confirm availability and share the payment link.`;
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay total amount</p>
                             </div>
                           </div>
-                          <p className="text-lg font-black text-slate-900">₹{selectedVehicle?.price}</p>
+                          <p className="text-lg font-black text-slate-900">₹{getBookingPrice().toLocaleString('en-IN')}</p>
                         </button>
                       </div>
                     </div>
@@ -555,7 +757,7 @@ Please confirm availability and share the payment link.`;
                           )}
                         >
                           <CreditCard className="w-5 h-5" />
-                          Proceed to Payment - ₹{paymentOption === "part" ? Math.round(parsePrice(selectedVehicle?.price || "0") * 0.3).toLocaleString('en-IN') : selectedVehicle?.price}
+                          Proceed to Payment - ₹{paymentOption === "part" ? Math.round(getBookingPrice() * 0.3).toLocaleString('en-IN') : getBookingPrice().toLocaleString('en-IN')}
                           <ChevronRight className="w-5 h-5" />
                         </button>
 
@@ -597,7 +799,13 @@ Please confirm availability and share the payment link.`;
                           key={idx}
                           onClick={() => {
                             setSelectedVehicle(vehicle);
-                            setBookingStep("summary");
+                            if (vehicle.model === "Tempo Traveller" || vehicle.model === "Urbania") {
+                              setSelectedSeats({});
+                              setBookingStep("seats");
+                            } else {
+                              setSelectedSeats({});
+                              setBookingStep("summary");
+                            }
                           }}
                           className={cn(
                             "w-full p-4 rounded-2xl border-2 transition-all flex items-center justify-between group",
@@ -624,7 +832,7 @@ Please confirm availability and share the payment link.`;
                   </motion.div>
                 )}
 
-                {(bookingStep === "summary" || bookingStep === "checkout") && (
+                {(bookingStep === "passengers" || bookingStep === "summary" || bookingStep === "checkout") && (
                   <motion.div
                     key="step-summary"
                     initial={{ opacity: 0, x: 20 }}
@@ -666,13 +874,34 @@ Please confirm availability and share the payment link.`;
                       <div className="pt-6 border-t border-slate-100 space-y-6">
                         {/* Fare Breakdown */}
                         <div className="space-y-3">
+                          {isMultiSeater && Object.keys(selectedSeats).length > 0 && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Selected Seats</span>
+                              <span className="text-xs font-black text-slate-900">{Object.keys(selectedSeats).map(s => `S${s}`).join(", ")} ({Object.keys(selectedSeats).length} Seats)</span>
+                            </div>
+                          )}
+                          {isMultiSeater && Object.keys(selectedSeats).length > 0 && Object.keys(passengerDetails).length > 0 && (
+                            <div className="space-y-2 pt-2 border-t border-slate-100/50">
+                              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest block">Passengers Info</span>
+                              <div className="space-y-1.5 pl-1">
+                                {Object.entries(passengerDetails).map(([seatNum, details]) => (
+                                  <div key={seatNum} className="flex justify-between items-center text-[11px]">
+                                    <span className="font-bold text-slate-600">Seat S{seatNum} ({details.gender === "female" ? "F" : "M"})</span>
+                                    <span className="font-black text-slate-800">{details.name || "N/A"} ({details.age ? `${details.age} yrs` : "N/A"})</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           <div className="flex justify-between items-center">
-                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Base fare</span>
-                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{selectedVehicle?.price}</span>
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                              {isMultiSeater && Object.keys(selectedSeats).length > 0 ? "Seat Fare" : "Base fare"}
+                            </span>
+                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</span>
                           </div>
                           <div className="flex justify-between items-center pt-3 border-t border-slate-100/50">
                             <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total Price</span>
-                            <span className="text-2xl font-black text-slate-900 tracking-tight">₹{selectedVehicle?.price}</span>
+                            <span className="text-2xl font-black text-slate-900 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</span>
                           </div>
                         </div>
 
@@ -713,23 +942,51 @@ Please confirm availability and share the payment link.`;
 
                         <div className="flex gap-3 pt-4">
                           <button
-                            onClick={() => setBookingStep(bookingStep === "checkout" ? "summary" : "select")}
+                            onClick={() => {
+                              if (bookingStep === "checkout") {
+                                setBookingStep("summary");
+                              } else if (bookingStep === "summary") {
+                                if (isMultiSeater) {
+                                  setBookingStep("passengers");
+                                } else {
+                                  setBookingStep("select");
+                                }
+                              } else if (bookingStep === "passengers") {
+                                setBookingStep("seats");
+                              }
+                            }}
                             className="flex-1 h-14 rounded-2xl border-2 border-slate-100 text-slate-900 text-[11px] font-black uppercase tracking-widest hover:bg-slate-50 flex items-center justify-center gap-2 transition-all"
                           >
                             <ChevronLeft className="w-4 h-4" />
-                            {bookingStep === "checkout" ? "Back to Summary" : "Back to Vehicles"}
+                            {bookingStep === "checkout" 
+                              ? "Back to Summary" 
+                              : bookingStep === "summary"
+                                ? isMultiSeater ? "Back to Passengers" : "Back to Vehicles"
+                                : "Back to Seats"}
                           </button>
                           <button
+                            disabled={bookingStep === "passengers" && !isPassengerFormValid()}
                             onClick={() => {
                               if (bookingStep === "checkout") {
                                 handleFinalBooking();
-                              } else {
+                              } else if (bookingStep === "summary") {
                                 setBookingStep("checkout");
+                              } else if (bookingStep === "passengers") {
+                                setBookingStep("summary");
                               }
                             }}
-                            className="flex-1 h-14 rounded-2xl bg-emerald-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-emerald-700 shadow-xl shadow-emerald-600/20 transition-all"
+                            className={cn(
+                              "flex-1 h-14 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl transition-all",
+                              (bookingStep === "passengers" && !isPassengerFormValid())
+                                ? "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-100"
+                                : "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/20"
+                            )}
                           >
-                            {bookingStep === "checkout" ? "Confirm Booking" : "Book Now"}
+                            {bookingStep === "checkout" 
+                              ? "Confirm Booking" 
+                              : bookingStep === "summary"
+                                ? "Book Now"
+                                : "Confirm Details"}
                           </button>
                         </div>
                       </div>
@@ -745,36 +1002,62 @@ Please confirm availability and share the payment link.`;
       {/* Mobile Sticky Booking Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-lg bg-white/90">
         <div className="flex flex-col">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Price</p>
-          <p className="text-xl font-black text-emerald-600 tracking-tight">₹{selectedVehicle?.price}</p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{isMultiSeater && Object.keys(selectedSeats).length > 0 ? `${Object.keys(selectedSeats).length} Seats` : "Total Price"}</p>
+          <p className="text-xl font-black text-emerald-600 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={() => window.open(`https://wa.me/919966363662`, "_blank")}
+            onClick={() => window.open(`https://wa.me/919111989222`, "_blank")}
             className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center hover:bg-emerald-100 transition-colors"
           >
             <MessageCircle className="w-6 h-6" />
           </button>
           <button
             onClick={() => {
-              if (formData.fullName && formData.phone && formData.email) {
-                if (bookingStep === "checkout") {
-                  handleFinalBooking();
-                } else if (bookingStep === "summary") {
-                  setBookingStep("checkout");
+              if (bookingStep === "select") {
+                if (isMultiSeater) {
+                  setBookingStep("seats");
                 } else {
                   setBookingStep("summary");
+                }
+              } else if (bookingStep === "seats") {
+                if (Object.keys(selectedSeats).length > 0) {
+                  confirmSeatsAndGoToPassengers(selectedSeats);
+                }
+              } else if (bookingStep === "passengers") {
+                if (isPassengerFormValid()) {
+                  setBookingStep("summary");
+                }
+              } else if (bookingStep === "summary") {
+                setBookingStep("checkout");
+              } else if (bookingStep === "checkout") {
+                if (formData.fullName && formData.phone && formData.email) {
+                  handleFinalBooking();
                 }
               }
             }}
             className={cn(
               "px-8 h-12 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
-              (formData.fullName && formData.phone && formData.email) || bookingStep !== "checkout"
-                ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
-                : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
+              bookingStep === "seats"
+                ? Object.keys(selectedSeats).length > 0
+                  ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-100"
+                : bookingStep === "passengers"
+                  ? isPassengerFormValid()
+                    ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
+                    : "bg-slate-200 text-slate-400 cursor-not-allowed border border-slate-100"
+                  : (formData.fullName && formData.phone && formData.email) || bookingStep !== "checkout"
+                    ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
+                    : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
             )}
           >
-            {bookingStep === "checkout" ? "Confirm" : "Book Now"}
+            {bookingStep === "checkout" 
+              ? "Confirm Booking" 
+              : bookingStep === "seats" 
+                ? "Confirm Seats" 
+                : bookingStep === "passengers"
+                  ? "Confirm Details"
+                  : "Book Now"}
           </button>
         </div>
       </div>
@@ -800,8 +1083,7 @@ Please confirm availability and share the payment link.`;
       </div>
 
       <div className="h-32 lg:hidden" /> {/* Increased spacer for sticky bar */}
-      <Footer />
-    </main>
+      </main>
   );
 };
 

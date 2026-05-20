@@ -93,13 +93,19 @@ const Footer = () => {
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-600 transition-colors">
                     <Phone className="w-4 h-4 text-emerald-600 group-hover:text-white" />
                   </div>
-                  <span className="tracking-widest font-black">+91 9966363662</span>
+                  <div className="flex flex-col">
+                    <a href="tel:+919111989222" className="tracking-widest font-black hover:text-emerald-600 transition-colors">+91 9111989222</a>
+                    <a href="tel:+918889994886" className="tracking-widest font-black text-xs text-slate-500 mt-1 hover:text-emerald-600 transition-colors">+91 8889994886</a>
+                  </div>
                 </li>
                 <li className="flex items-center gap-4 group">
                   <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-600 transition-colors">
                     <Mail className="w-4 h-4 text-emerald-600 group-hover:text-white" />
                   </div>
-                  <span className="tracking-wide font-black">info@vizagtaxihub.com</span>
+                  <div className="flex flex-col">
+                    <a href="mailto:info@nrtravels.com" className="tracking-wide font-black hover:text-emerald-600 transition-colors">info@nrtravels.com</a>
+                    <a href="mailto:nrktravels.in@gmail.com" className="tracking-wide font-black text-xs text-slate-500 mt-1 hover:text-emerald-600 transition-colors">nrktravels.in@gmail.com</a>
+                  </div>
                 </li>
               </ul>
             </div>
