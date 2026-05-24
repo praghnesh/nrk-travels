@@ -36,6 +36,56 @@ interface BookingFlowModalProps {
   };
 }
 
+const getEstimatedDistance = (from: string, to: string): number => {
+  const f = from.toLowerCase();
+  const t = to.toLowerCase();
+
+  // If one of them is Vizag/Visakhapatnam, check the other one
+  const other = f.includes("vizag") || f.includes("visakhapatnam") ? t : f;
+
+  if (other.includes("araku")) return 115;
+  if (other.includes("arasavalli")) return 120;
+  if (other.includes("srikakulam")) return 115;
+  if (other.includes("annavaram")) return 110;
+  if (other.includes("lambasingi")) return 105;
+  if (other.includes("vanajangi")) return 100;
+  if (other.includes("hyderabad")) return 620;
+  if (other.includes("bangalore") || other.includes("bengaluru")) return 1000;
+  if (other.includes("chennai")) return 800;
+  if (other.includes("vijayawada")) return 350;
+  if (other.includes("tirupati")) return 750;
+  if (other.includes("kakinada")) return 155;
+  if (other.includes("rajahmundry")) return 190;
+  if (other.includes("airport")) return 35;
+
+  return 145; // default fallback
+};
+
+const getEstimatedFare = (from: string, to: string, pricePerKm: number): { price: number; distance: number; time: string } => {
+  const distance = getEstimatedDistance(from, to);
+  const f = from.toLowerCase();
+  const t = to.toLowerCase();
+  
+  if (f.includes("airport") || t.includes("airport")) {
+    return {
+      price: 800,
+      distance: 35,
+      time: "1h 0m"
+    };
+  }
+
+  // Outstation: minimum 300 km billing
+  const price = Math.max(distance, 300) * pricePerKm;
+  const hours = Math.floor((distance * 1.5) / 60) + 1; // rough estimate
+  const minutes = Math.round((distance * 1.5) % 60);
+
+  return {
+    price: price,
+    distance: distance,
+    time: `${hours}h ${minutes}m`
+  };
+};
+
 const BookingFlowModal = ({ isOpen, onClose, vehicle }: BookingFlowModalProps) => {
   const [step, setStep] = useState(1);
   const [fromLocation, setFromLocation] = useState("");
@@ -124,6 +174,13 @@ const BookingFlowModal = ({ isOpen, onClose, vehicle }: BookingFlowModalProps) =
                   </div>
                 </div>
               </div>
+
+              {fromLocation && toLocation && (
+                <div className="pt-6 border-t border-white/10">
+                  <p className="text-[10px] font-black opacity-40 uppercase tracking-widest">Estimated Total</p>
+                  <p className="text-2xl font-black text-emerald-400 mt-1">₹{getEstimatedFare(fromLocation, toLocation, vehicle.pricePerKm).price.toLocaleString('en-IN')}</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -252,7 +309,7 @@ const BookingFlowModal = ({ isOpen, onClose, vehicle }: BookingFlowModalProps) =
                         <Info className="w-4 h-4 text-emerald-600" />
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-5xl font-black text-slate-900 tracking-tighter">₹2,499</span>
+                        <span className="text-5xl font-black text-slate-900 tracking-tighter">₹{getEstimatedFare(fromLocation, toLocation, vehicle.pricePerKm).price.toLocaleString('en-IN')}</span>
                         <span className="text-xs font-bold text-slate-400 uppercase">Fixed</span>
                       </div>
                       <p className="text-xs font-bold text-slate-500 leading-relaxed">
@@ -265,11 +322,11 @@ const BookingFlowModal = ({ isOpen, onClose, vehicle }: BookingFlowModalProps) =
                       <div className="space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-bold text-slate-600">Total Distance</span>
-                          <span className="text-sm font-black text-slate-900 uppercase">~145 KM</span>
+                          <span className="text-sm font-black text-slate-900 uppercase">~{getEstimatedFare(fromLocation, toLocation, vehicle.pricePerKm).distance} KM</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-bold text-slate-600">Estimated Time</span>
-                          <span className="text-sm font-black text-slate-900 uppercase">3h 45m</span>
+                          <span className="text-sm font-black text-slate-900 uppercase">{getEstimatedFare(fromLocation, toLocation, vehicle.pricePerKm).time}</span>
                         </div>
                       </div>
                     </div>
@@ -349,7 +406,7 @@ const BookingFlowModal = ({ isOpen, onClose, vehicle }: BookingFlowModalProps) =
                         <div className="space-y-4">
                           <div className="flex justify-between items-end">
                             <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Amount to Pay</p>
-                            <p className="text-4xl font-black">₹2,499</p>
+                            <p className="text-4xl font-black">₹{getEstimatedFare(fromLocation, toLocation, vehicle.pricePerKm).price.toLocaleString('en-IN')}</p>
                           </div>
                           
                           <Button 

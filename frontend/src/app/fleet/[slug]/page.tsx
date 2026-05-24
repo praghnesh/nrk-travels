@@ -271,8 +271,8 @@ const FleetDetailsPage = () => {
                         <div className="space-y-2">
                           <h4 className="text-lg font-black text-slate-900 tracking-tight uppercase group-hover:text-emerald-600 transition-colors line-clamp-1">{tour.title}</h4>
                           <div className="flex gap-4">
-                            <span className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-emerald-500" /> 460 KM</span>
-                            <span className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest"><Clock className="w-3 h-3 text-emerald-500" /> 3D / 2N</span>
+                            <span className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest"><MapPin className="w-3 h-3 text-emerald-500" /> {tour.distanceKm} KM</span>
+                            <span className="flex items-center gap-1.5 text-[9px] font-black text-slate-400 uppercase tracking-widest"><Clock className="w-3 h-3 text-emerald-500" /> {tour.duration}</span>
                           </div>
                         </div>
 
@@ -314,10 +314,10 @@ const FleetDetailsPage = () => {
                     <div className="space-y-2">
                       {[
                         { label: "Outstation", price: `₹${vehicle.pricePerKm}/km`, sub: `Min ${vehicle.minKm} km`, active: true },
-                        { label: "Airport Transfer", price: "₹800", sub: "≤10 km - 11-20 km - 21-30 km - &gt;30 km" },
-                        { label: "3 Days Vizag & Araku", price: "₹12000", sub: "460 km" },
-                        { label: "Araku Valley Tour", price: "₹5000", sub: "260 km" },
-                        { label: "Arasavalli & Srikurmam", price: "₹4500", sub: "250 km" }
+                        { label: "Airport Transfer", price: "₹800", sub: "≤10 km - 11-20 km - 21-30 km - >30 km" },
+                        { label: "3 Days Vizag & Araku", price: `₹${(Math.max(460, 3 * Number(vehicle.minKm)) * Number(vehicle.pricePerKm)).toLocaleString('en-IN')}`, sub: "460 km | 3 Days" },
+                        { label: "Araku Valley Tour", price: `₹${(Math.max(260, 1 * Number(vehicle.minKm)) * Number(vehicle.pricePerKm)).toLocaleString('en-IN')}`, sub: "260 km | 1 Day" },
+                        { label: "Arasavalli & Srikurmam", price: `₹${(Math.max(250, 1 * Number(vehicle.minKm)) * Number(vehicle.pricePerKm)).toLocaleString('en-IN')}`, sub: "250 km | 1 Day" }
                       ].map((rate, i) => (
                         <div key={i} className={cn(
                           "p-4 rounded-2xl border transition-all cursor-pointer group",

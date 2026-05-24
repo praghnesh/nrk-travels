@@ -34,7 +34,6 @@ import {
 } from "lucide-react";
 import { FLEET_DATA } from "@/lib/fleet";
 import { DESTINATIONS } from "@/lib/destinations";
-import SeatSelection from "@/components/booking/SeatSelection";
 import DestinationsSection from "@/components/tours/DestinationsSection";
 import { cn } from "@/lib/utils";
 
@@ -86,6 +85,76 @@ const POPULAR_PICKUPS = [
   { display_name: "Madhurawada, Visakhapatnam, Andhra Pradesh, India", lat: "17.8186", lon: "83.3486", address: { postcode: "530048", village: "Madhurawada" } }
 ];
 
+const getFallbackCoordinates = (placeName: string) => {
+  if (!placeName) return null;
+  const cleanName = placeName.toLowerCase();
+  
+  // Hardcoded additional popular destinations just in case
+  const extraFallbacks: Record<string, { lat: number; lon: number; name: string }> = {
+    "bangalore": { lat: 12.9716, lon: 77.5946, name: "Bangalore, Karnataka, India" },
+    "bengaluru": { lat: 12.9716, lon: 77.5946, name: "Bangalore, Karnataka, India" },
+    "hyderabad": { lat: 17.3850, lon: 78.4867, name: "Hyderabad, Telangana, India" },
+    "chennai": { lat: 13.0827, lon: 80.2707, name: "Chennai, Tamil Nadu, India" },
+    "vijayawada": { lat: 16.5062, lon: 80.6480, name: "Vijayawada, NTR District, Andhra Pradesh, India" },
+    "tirupati": { lat: 13.6288, lon: 79.4192, name: "Tirupati, Tirupati District, Andhra Pradesh, India" },
+    "arasavalli": { lat: 18.3075, lon: 83.9168, name: "Arasavalli, Srikakulam, Andhra Pradesh, India" },
+    "araku": { lat: 18.2677, lon: 82.8791, name: "Araku Valley, Alluri Sitharama Raju, Andhra Pradesh, India" },
+    "annavaram": { lat: 17.2798, lon: 82.4087, name: "Annavaram, East Godavari, Andhra Pradesh, India" },
+    "bobbili": { lat: 18.5667, lon: 83.3667, name: "Bobbili, Vizianagaram, Andhra Pradesh, India" },
+    "srikakulam": { lat: 18.3000, lon: 83.9000, name: "Srikakulam, Andhra Pradesh, India" },
+    "vizianagaram": { lat: 18.1167, lon: 83.4167, name: "Vizianagaram, Andhra Pradesh, India" },
+    "rajahmundry": { lat: 17.0005, lon: 81.7878, name: "Rajahmundry, East Godavari, Andhra Pradesh, India" },
+    "kakinada": { lat: 16.9891, lon: 82.2439, name: "Kakinada, East Godavari, Andhra Pradesh, India" },
+    "vizag": { lat: 17.6868, lon: 83.2185, name: "Visakhapatnam, Andhra Pradesh, India" },
+    "visakhapatnam": { lat: 17.6868, lon: 83.2185, name: "Visakhapatnam, Andhra Pradesh, India" },
+  };
+
+  // 1. Check if the whole string contains any key
+  for (const [key, val] of Object.entries(extraFallbacks)) {
+    if (cleanName.includes(key)) {
+      return val;
+    }
+  }
+
+  // 2. Check if the string matches any LOCAL_SUGGESTIONS display name
+  const query = cleanName.replace(/[^a-z0-9]/g, "");
+  for (const s of LOCAL_SUGGESTIONS) {
+    const dispName = s.display_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (dispName.includes(query) || query.includes(dispName)) {
+      return {
+        lat: parseFloat(s.lat),
+        lon: parseFloat(s.lon),
+        name: s.display_name
+      };
+    }
+    // Check if any word of s.display_name is inside the cleanName
+    const words = s.display_name.toLowerCase().split(/[^a-z0-9]/);
+    for (const word of words) {
+      if (word && word.length > 3 && cleanName.includes(word)) {
+        return {
+          lat: parseFloat(s.lat),
+          lon: parseFloat(s.lon),
+          name: s.display_name
+        };
+      }
+    }
+  }
+
+  // 3. Try matching in POPULAR_PICKUPS
+  for (const p of POPULAR_PICKUPS) {
+    const dispName = p.display_name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (dispName.includes(query) || query.includes(dispName)) {
+      return {
+        lat: parseFloat(p.lat),
+        lon: parseFloat(p.lon),
+        name: p.display_name
+      };
+    }
+  }
+
+  return null;
+};
+
 const BookingPageContent = () => {
   const params = useParams();
   const router = useRouter();
@@ -94,11 +163,20 @@ const BookingPageContent = () => {
   const fleetParam = searchParams.get("fleet");
   const isTempoMode = fleetParam === "tempo";
 
-  const destination = useMemo(() => {
-    if (DESTINATIONS[toSlug]) return DESTINATIONS[toSlug];
+  const normalizedToSlug = useMemo(() => {
+    if (!toSlug) return "";
+    const decoded = decodeURIComponent(toSlug);
+    const firstPart = decoded.split(",")[0].toLowerCase().trim();
+    const clean = firstPart.replace(/[^a-z0-9]+/g, "-");
+    if (clean === "bengaluru") return "bangalore";
+    return clean;
+  }, [toSlug]);
 
-    const isAirport = toSlug === "vizag-airport-transfer" || toSlug.includes("airport");
-    const name = isAirport ? "Vizag Airport Transfer" : toSlug.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
+  const destination = useMemo(() => {
+    if (DESTINATIONS[normalizedToSlug]) return DESTINATIONS[normalizedToSlug];
+
+    const isAirport = normalizedToSlug === "vizag-airport-transfer" || normalizedToSlug.includes("airport");
+    const name = isAirport ? "Vizag Airport Transfer" : normalizedToSlug.split("-").map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
     return {
       name: name,
       distanceKm: isAirport ? 35 : 250, // Realistic city distance
@@ -111,16 +189,18 @@ const BookingPageContent = () => {
       ],
       images: ["https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=800"]
     };
-  }, [toSlug]);
+  }, [normalizedToSlug]);
 
-  const isAirportMode = toSlug === "vizag-airport-transfer" || toSlug.includes("airport");
-  const [tripType, setTripType] = useState<"one-way" | "round-trip">("one-way");
+  const isAirportMode = normalizedToSlug === "vizag-airport-transfer" || normalizedToSlug.includes("airport");
+  const [tripType, setTripType] = useState<"one-way" | "round-trip" >(() => {
+    return isTempoMode ? "round-trip" : "one-way";
+  });
   const [airportTrip, setAirportTrip] = useState<"from-airport" | "to-airport">("from-airport");
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
-  const [bookingStep, setBookingStep] = useState<"selection" | "seats" | "forms" | "payment">("selection");
-  const [selectedSeats, setSelectedSeats] = useState<Record<number, string>>({});
+  const [bookingStep, setBookingStep] = useState<"selection" | "forms" | "payment">("selection");
+  const [passengerCount, setPassengerCount] = useState(1);
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary" | "policy">("overview");
   const [paymentOption, setPaymentOption] = useState<"part" | "full">("part");
   const [hasGST, setHasGST] = useState(false);
@@ -138,13 +218,29 @@ const BookingPageContent = () => {
     lon: 83.2185
   });
 
-  const [toSearch, setToSearch] = useState(destination.name);
+  const [toSearch, setToSearch] = useState(() => {
+    const decoded = decodeURIComponent(toSlug || "");
+    const firstPart = decoded.split(",")[0].toLowerCase().trim();
+    const clean = firstPart.replace(/[^a-z0-9]+/g, "-");
+    const slug = clean === "bengaluru" ? "bangalore" : clean;
+    const dest = DESTINATIONS[slug] || { name: slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") };
+    const fallback = getFallbackCoordinates(dest.name);
+    return fallback ? fallback.name : dest.name;
+  });
   const [toSuggestions, setToSuggestions] = useState<any[]>([]);
   const [showToSuggestions, setShowToSuggestions] = useState(false);
-  const [selectedTo, setSelectedTo] = useState({
-    name: destination.name,
-    lat: 17.6868, // Default, will geocode on mount
-    lon: 83.2185
+  const [selectedTo, setSelectedTo] = useState(() => {
+    const decoded = decodeURIComponent(toSlug || "");
+    const firstPart = decoded.split(",")[0].toLowerCase().trim();
+    const clean = firstPart.replace(/[^a-z0-9]+/g, "-");
+    const slug = clean === "bengaluru" ? "bangalore" : clean;
+    const dest = DESTINATIONS[slug] || { name: slug.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ") };
+    const fallback = getFallbackCoordinates(dest.name);
+    return {
+      name: fallback ? fallback.name : dest.name,
+      lat: fallback ? fallback.lat : 17.6868,
+      lon: fallback ? fallback.lon : 83.2185
+    };
   });
 
   const [calculatedDistance, setCalculatedDistance] = useState<number>(destination.distanceKm);
@@ -175,7 +271,8 @@ const BookingPageContent = () => {
     try {
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=in&addressdetails=1&limit=5`, {
         headers: {
-          "Accept-Language": "en"
+          "Accept-Language": "en",
+          "User-Agent": "NRK-Travels-App/1.0"
         }
       });
       if (res.ok) {
@@ -261,6 +358,33 @@ const BookingPageContent = () => {
           lon: actualDrop.includes("Airport") ? 83.2245 : prev.lon
         }));
       }
+    } else {
+      // Outstation Mode Parameter Parsing
+      if (pickupParam) {
+        const actualPickup = decodeURIComponent(pickupParam);
+        setFromSearch(actualPickup);
+        const fallback = getFallbackCoordinates(actualPickup);
+        if (fallback) {
+          setSelectedFrom({
+            name: fallback.name,
+            lat: fallback.lat,
+            lon: fallback.lon
+          });
+        }
+      }
+
+      if (dropParam) {
+        const actualDrop = decodeURIComponent(dropParam);
+        setToSearch(actualDrop);
+        const fallback = getFallbackCoordinates(actualDrop);
+        if (fallback) {
+          setSelectedTo({
+            name: fallback.name,
+            lat: fallback.lat,
+            lon: fallback.lon
+          });
+        }
+      }
     }
 
     if (dateParam) {
@@ -275,6 +399,18 @@ const BookingPageContent = () => {
     }
   }, [searchParams, isAirportMode]);
 
+  // Default select the first vehicle on mount so that the sidebar shows the price immediately
+  useEffect(() => {
+    const defaultVeh = isTempoMode
+      ? Object.values(FLEET_DATA).find(v => v.slug === "tempo-traveller") || Object.values(FLEET_DATA)[0]
+      : Object.values(FLEET_DATA)[0];
+    if (defaultVeh && !selectedVehicle) {
+      setSelectedVehicle(defaultVeh);
+    }
+  }, [isTempoMode, selectedVehicle]);
+
+  // Keep selection state as is and do not force round-trip for tempo travellers
+
   // Geocode airport transfer custom location on mount/change
   useEffect(() => {
     if (!isAirportMode) return;
@@ -286,8 +422,42 @@ const BookingPageContent = () => {
       if (!targetQuery || targetQuery === "Visakhapatnam International Airport" || targetQuery.includes("Airport")) return;
 
       setIsLoadingRoute(true);
+
+      // Try local fallback first
+      const fallback = getFallbackCoordinates(targetQuery);
+      if (fallback) {
+        if (isFrom) {
+          setSelectedTo({
+            name: fallback.name,
+            lat: fallback.lat,
+            lon: fallback.lon
+          });
+          setSelectedFrom({
+            name: "Visakhapatnam International Airport",
+            lat: 17.7244,
+            lon: 83.2245
+          });
+        } else {
+          setSelectedFrom({
+            name: fallback.name,
+            lat: fallback.lat,
+            lon: fallback.lon
+          });
+          setSelectedTo({
+            name: "Visakhapatnam International Airport",
+            lat: 17.7244,
+            lon: 83.2245
+          });
+        }
+      }
+
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(targetQuery + ", Visakhapatnam")}&countrycodes=in&limit=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(targetQuery + ", Visakhapatnam")}&countrycodes=in&limit=1`, {
+          headers: {
+            "Accept-Language": "en",
+            "User-Agent": "NRK-Travels-App/1.0"
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
@@ -332,8 +502,27 @@ const BookingPageContent = () => {
     if (isAirportMode) return;
     const geocodeInitialDestination = async () => {
       setIsLoadingRoute(true);
+
+      // Try local fallback first
+      const fallback = getFallbackCoordinates(destination.name);
+      if (fallback) {
+        setSelectedTo({
+          name: fallback.name,
+          lat: fallback.lat,
+          lon: fallback.lon
+        });
+        setToSearch(fallback.name);
+        setIsLoadingRoute(false);
+        return;
+      }
+
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", India")}&countrycodes=in&limit=1`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(destination.name + ", India")}&countrycodes=in&limit=1`, {
+          headers: {
+            "Accept-Language": "en",
+            "User-Agent": "NRK-Travels-App/1.0"
+          }
+        });
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
@@ -408,6 +597,18 @@ const BookingPageContent = () => {
     getRoute();
   }, [selectedFrom.lat, selectedFrom.lon, selectedTo.lat, selectedTo.lon]);
 
+  const [isMapReady, setIsMapReady] = useState(false);
+
+  useEffect(() => {
+    const handleMapMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === "MAP_READY") {
+        setIsMapReady(true);
+      }
+    };
+    window.addEventListener("message", handleMapMessage);
+    return () => window.removeEventListener("message", handleMapMessage);
+  }, []);
+
   // Leaflet map code inside an iframe
   const mapSrcDoc = useMemo(() => {
     return `
@@ -444,6 +645,9 @@ const BookingPageContent = () => {
           var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
           });
+
+          // Post map ready message to parent window
+          window.parent.postMessage({ type: 'MAP_READY' }, '*');
 
           window.addEventListener('message', function(event) {
             if (event.data.type === 'UPDATE_ROUTE') {
@@ -496,29 +700,25 @@ const BookingPageContent = () => {
     `;
   }, []);
 
-  // Post message to map iframe when coordinates or map mode changes
+  // Post message to map iframe when coordinates, map mode, or map readiness changes
   useEffect(() => {
     if (mapRef.current && mapRef.current.contentWindow && selectedFrom.lat && selectedTo.lat) {
       const timer = setTimeout(() => {
         mapRef.current?.contentWindow?.postMessage({
-          type: 'UPDATE_ROUTE',
+          type: "UPDATE_ROUTE",
           from: selectedFrom,
           to: selectedTo,
           coordinates: routeCoordinates
-        }, '*');
+        }, "*");
+
+        mapRef.current?.contentWindow?.postMessage({
+          type: "SET_TILE",
+          mode: mapMode
+        }, "*");
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [selectedFrom, selectedTo, routeCoordinates, mapMode]);
-
-  useEffect(() => {
-    if (mapRef.current && mapRef.current.contentWindow) {
-      mapRef.current.contentWindow.postMessage({
-        type: 'SET_TILE',
-        mode: mapMode
-      }, '*');
-    }
-  }, [mapMode]);
+  }, [selectedFrom, selectedTo, routeCoordinates, mapMode, isMapReady]);
 
   // If destination not found, fallback
   if (!destination) {
@@ -533,52 +733,39 @@ const BookingPageContent = () => {
   }
 
   // Simplified and corrected fare calculation based on requirements
-  const calculateFare = (pricePerKm: number) => {
+  const calculateFare = (pricePerKm: number, slug?: string) => {
     const distance = calculatedDistance || destination.distanceKm;
-    const multiplier = tripType === "round-trip" ? 2 : 1;
+    const multiplier = (tripType === "round-trip") ? 2 : 1;
     const totalKm = distance * multiplier;
-    const total = Math.ceil(totalKm * pricePerKm);
+    const chargeKm = distance * multiplier;
+    const total = Math.ceil(chargeKm * pricePerKm);
     return {
       total: total,
-      totalKm: totalKm
+      totalKm: totalKm,
+      chargeKm: chargeKm
     };
   };
 
   const totalAmount = useMemo(() => {
     if (!selectedVehicle) return 0;
-    const fares = calculateFare(Number(selectedVehicle.pricePerKm));
-    if (selectedVehicle.slug.includes("tempo") || selectedVehicle.slug.includes("urbania")) {
-      const perSeat = Math.ceil(fares.total / Number(selectedVehicle.pax));
-      return perSeat * Object.keys(selectedSeats).length;
-    }
-    return fares.total;
-  }, [selectedVehicle, selectedSeats, calculatedDistance, tripType]);
+    return calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug).total;
+  }, [selectedVehicle, calculatedDistance, tripType]);
 
   const partPayAmount = Math.ceil(totalAmount * 0.3);
 
   const handleBookNow = (vehicle: any) => {
     setSelectedVehicle(vehicle);
-    const isTempo = vehicle.slug.includes("tempo") || vehicle.slug.includes("urbania");
-    if (isTempo) {
-      setBookingStep("seats");
-      // Smooth scroll to seats
-      setTimeout(() => {
-        const seatsElement = document.getElementById("booking-seats");
-        if (seatsElement) {
-          seatsElement.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    } else {
-      setBookingStep("forms");
-      // Smooth scroll to form
-      setTimeout(() => {
-        const formElement = document.getElementById("booking-form");
-        if (formElement) {
-          formElement.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      }, 100);
-    }
+    setPassengerCount(1);
+    setBookingStep("forms");
+    setTimeout(() => {
+      const formElement = document.getElementById("booking-form");
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 600);
   };
+
+  const maxPassengers = selectedVehicle ? parseInt(selectedVehicle.pax, 10) || 1 : 1;
 
   const initiatePayment = () => {
     setIsProcessing(true);
@@ -1166,7 +1353,7 @@ const BookingPageContent = () => {
             {Object.values(FLEET_DATA)
               .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania")
               .map((vehicle) => {
-              const fares = calculateFare(Number(vehicle.pricePerKm));
+              const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
               const isExpanded = expandedVehicle === vehicle.slug;
 
               return (
@@ -1198,9 +1385,9 @@ const BookingPageContent = () => {
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Fare</p>
                         <p className="text-3xl font-black text-emerald-600 tracking-tighter">₹{fares.total.toLocaleString()}</p>
                         <p className="text-[10px] font-black text-slate-500 mt-1">
-                          ₹{Math.ceil(fares.total / Number(vehicle.pax)).toLocaleString()} <span className="text-[9px] text-slate-400 font-bold">/ head</span>
+                          Up to {vehicle.pax} passengers
                         </p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-0.5">
+                        <p className={cn("text-[9px] font-bold text-slate-400 mt-0.5")}>
                           {fares.totalKm} KM @ ₹{vehicle.pricePerKm}/KM
                         </p>
                       </div>
@@ -1235,30 +1422,6 @@ const BookingPageContent = () => {
           </div>
 
           <AnimatePresence>
-            {bookingStep === "seats" && selectedVehicle && (
-              <motion.div
-                id="booking-seats"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="space-y-10"
-              >
-                <div className="bg-white rounded-[3rem] p-10 lg:p-14 border border-slate-100 shadow-sm">
-                  <SeatSelection
-                    totalSeats={parseInt(selectedVehicle.pax)}
-                    pricePerSeat={Math.ceil(calculateFare(Number(selectedVehicle.pricePerKm)).total / Number(selectedVehicle.pax))}
-                    onBack={() => setBookingStep("selection")}
-                    onConfirm={(seats) => {
-                      setSelectedSeats(seats);
-                      setBookingStep("forms");
-                      setTimeout(() => {
-                        document.getElementById("booking-form")?.scrollIntoView({ behavior: "smooth" });
-                      }, 100);
-                    }}
-                  />
-                </div>
-              </motion.div>
-            )}
-
             {bookingStep === "forms" && (
               <motion.div
                 id="booking-form"
@@ -1292,16 +1455,19 @@ const BookingPageContent = () => {
   // SHARED SUB-RENDERERS
   // ---------------------------------------------------------
 
-  const renderTripModeCard = () => (
-    <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm space-y-6">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Trip Mode</h3>
-      <div className="flex bg-slate-100 p-1.5 rounded-2xl">
-        <button onClick={() => setTripType("one-way")} className={cn("flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", tripType === "one-way" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400")}>One Way</button>
-        <button onClick={() => setTripType("round-trip")} className={cn("flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", tripType === "round-trip" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400")}>Round Trip</button>
+  const renderTripModeCard = () => {
+
+    return (
+      <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm space-y-6">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Trip Mode</h3>
+        <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+          <button onClick={() => setTripType("one-way")} className={cn("flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", tripType === "one-way" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400")}>One Way</button>
+          <button onClick={() => setTripType("round-trip")} className={cn("flex-1 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all", tripType === "round-trip" ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400")}>Round Trip</button>
+        </div>
+        <p className="text-[9px] font-bold text-slate-400 italic">Round trip includes return journey with same vehicle. Rates may vary based on duration.</p>
       </div>
-      <p className="text-[9px] font-bold text-slate-400 italic">Round trip includes return journey with same vehicle. Rates may vary based on duration.</p>
-    </div>
-  );
+    );
+  };
 
   const renderContentTabs = () => (
     <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
@@ -1364,75 +1530,84 @@ const BookingPageContent = () => {
 
   const renderPassengerForms = () => (
     <div className="space-y-10">
-      {/* Dynamic Passenger Forms or Primary Traveler details */}
+      {/* Trip details & passenger count */}
+      <div className="bg-white rounded-[3rem] p-10 lg:p-14 border border-slate-100 shadow-sm space-y-10">
+        <div className="flex items-center gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+            <Users className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Trip &amp; Passengers</h3>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
+              Full vehicle fare — same as car booking (distance × rate per km)
+            </p>
+          </div>
+        </div>
+
+        {selectedVehicle && (
+          <div className="grid md:grid-cols-3 gap-6 p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Distance</p>
+              <p className="text-lg font-black text-slate-900">
+                {(() => {
+                  const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
+                  return `${f.totalKm} KM`;
+                })()}
+              </p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rate</p>
+              <p className="text-lg font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</p>
+            </div>
+            <div className="space-y-2">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Fare</p>
+              <p className="text-lg font-black text-emerald-600">₹{totalAmount.toLocaleString("en-IN")}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pricing Model</p>
+          <p className="text-[10px] font-bold text-slate-400 italic mt-1">
+            Total booking amount stays ₹{totalAmount.toLocaleString("en-IN")} for the whole vehicle.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-white rounded-[3rem] p-10 lg:p-14 border border-slate-100 shadow-sm space-y-12">
         <div className="flex items-center gap-6">
           <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
             <Users className="w-7 h-7" />
           </div>
           <div>
-            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-              {Object.keys(selectedSeats).length > 0 ? "Passenger Information" : "Primary Guest Details"}
-            </h3>
+            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Primary Guest Details</h3>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
-              {Object.keys(selectedSeats).length > 0 
-                ? `Enter details for ${Object.keys(selectedSeats).length} Travelers` 
-                : "Enter details for the primary passenger"}
+              Lead passenger for this booking
             </p>
           </div>
         </div>
 
-        <div className="space-y-10">
-          {Object.keys(selectedSeats).length > 0 ? (
-            Object.entries(selectedSeats).map(([seatNum, gender], idx) => (
-              <div key={seatNum} className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100 space-y-6">
-                <div className="flex items-center justify-between">
-                  <span className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">Seat {seatNum} — {gender}</span>
-                </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Full Name</label>
-                    <input type="text" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Enter name" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Age</label>
-                    <input type="number" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Age" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender</label>
-                    <select className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 appearance-none">
-                      <option>{gender}</option>
-                      <option>Male</option>
-                      <option>Female</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100 space-y-6">
-              <div className="flex items-center justify-between">
-                <span className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">Primary Passenger</span>
-              </div>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="space-y-3">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Full Name</label>
-                  <input type="text" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Enter name" />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Age</label>
-                  <input type="number" className="w-full h-14 bg-[#F8FAFC] border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Age" />
-                </div>
-                <div className="space-y-3">
-                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender</label>
-                  <select className="w-full h-14 bg-[#F8FAFC] border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                  </select>
-                </div>
-              </div>
+        <div className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100 space-y-6">
+          <div className="flex items-center justify-between">
+            <span className="px-4 py-1.5 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">Primary Passenger</span>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Full Name</label>
+              <input type="text" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Enter name" />
             </div>
-          )}
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Age</label>
+              <input type="number" className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900 placeholder:text-slate-500" placeholder="Age" />
+            </div>
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Gender</label>
+              <select className="w-full h-14 bg-white border border-slate-100 rounded-xl px-4 text-sm font-bold text-slate-900">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1449,6 +1624,10 @@ const BookingPageContent = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 lg:gap-10">
+            <div className="space-y-3 md:col-span-2">
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Full Name</label>
+              <input type="text" className="w-full h-14 lg:h-16 bg-[#F8FAFC] border border-slate-100 rounded-2xl px-4 lg:px-6 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:bg-white focus:ring-2 focus:ring-emerald-500/20 transition-all" placeholder="Enter your full name" />
+            </div>
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Phone Number</label>
               <div className="flex gap-3 lg:gap-4">
@@ -1561,7 +1740,7 @@ const BookingPageContent = () => {
         {Object.values(FLEET_DATA)
           .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania")
           .map((vehicle) => {
-          const fares = calculateFare(Number(vehicle.pricePerKm));
+          const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
           return (
             <button key={vehicle.slug} onClick={() => handleBookNow(vehicle)} className={cn("w-full p-6 rounded-[2rem] border-2 transition-all flex items-center justify-between group", selectedVehicle?.slug === vehicle.slug ? "border-emerald-500 bg-emerald-50/50" : "border-slate-100 hover:border-emerald-500/30")}>
               <div className="flex items-center gap-4">
@@ -1581,7 +1760,9 @@ const BookingPageContent = () => {
               </div>
               <div className="text-right">
                 <p className="text-sm font-black text-slate-900 tracking-tight">₹{fares.total.toLocaleString()}</p>
-                <p className="text-[8px] font-bold text-slate-400 mt-0.5">₹{Math.ceil(fares.total / Number(vehicle.pax))}/seat</p>
+                <p className="text-[8px] font-bold text-slate-400 mt-0.5">
+                  {fares.totalKm} km
+                </p>
               </div>
             </button>
           );
@@ -1595,7 +1776,7 @@ const BookingPageContent = () => {
       ? Object.values(FLEET_DATA).find(v => v.slug === "tempo-traveller") || Object.values(FLEET_DATA)[0]
       : Object.values(FLEET_DATA)[0];
     const activeVehicle = selectedVehicle || defaultVehicle;
-    const fares = calculateFare(Number(activeVehicle.pricePerKm));
+    const fares = calculateFare(Number(activeVehicle.pricePerKm), activeVehicle.slug);
     const isTempo = activeVehicle.slug.includes("tempo") || activeVehicle.slug.includes("urbania");
     const formattedDistance = calculatedDistance * (tripType === "round-trip" ? 2 : 1);
     
@@ -1715,25 +1896,7 @@ const BookingPageContent = () => {
                 <span className="text-sm font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</span>
               </div>
               
-              {(selectedVehicle.slug.includes("tempo") || selectedVehicle.slug.includes("urbania")) && (
-                <>
-                  <div className="flex justify-between items-center border-t border-slate-100 pt-4 mt-2">
-                    <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Price Per Head</span>
-                    <span className="text-sm font-black text-emerald-600">
-                      ₹{Math.ceil(calculateFare(Number(selectedVehicle.pricePerKm)).total / Number(selectedVehicle.pax)).toLocaleString()} / seat
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Seats Selected</span>
-                    <span className="text-sm font-black text-slate-900">
-                      {Object.keys(selectedSeats).length > 0 
-                        ? `${Object.keys(selectedSeats).length} Seats (${Object.keys(selectedSeats).join(", ")})` 
-                        : "0 Seats (Select below)"
-                      }
-                    </span>
-                  </div>
-                </>
-              )}
+
             </>
           )}
           <div className="flex justify-between items-center">

@@ -152,7 +152,8 @@ const LocationInput: React.FC<LocationInputProps> = ({
           limit: 5,
         },
         headers: {
-          "Accept-Language": "en"
+          "Accept-Language": "en",
+          "User-Agent": "NRK-Travels-App/1.0"
         }
       });
 

@@ -72,7 +72,8 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
       let path = "/booking/vizag-full-city-tour"; // Default
 
       if (activeTab === "outstation") {
-        const slug = drop.toLowerCase().trim().replace(/\s+/g, "-");
+        const firstPart = drop.split(",")[0].toLowerCase().trim();
+        const slug = firstPart.replace(/[^a-z0-9]+/g, "-");
         path = `/booking/${slug}`;
       } else if (activeTab === "airport") {
         const actualPickup = airportTrip === "from-airport" ? "Visakhapatnam International Airport" : pickup;

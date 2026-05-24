@@ -1,3 +1,5 @@
+import { FLEET_DATA } from "./fleet";
+
 export interface VehicleRate {
   model: string;
   pax: string;
@@ -23,6 +25,8 @@ export interface Tour {
   included: string[];
   notIncluded: string[];
   itinerary: ItineraryDay[];
+  distanceKm: number;
+  days: number;
 }
 
 export interface GroupTour {
@@ -44,6 +48,70 @@ export interface GroupTour {
   itinerary: ItineraryDay[];
 }
 
+export const calculateTourPrice = (tourSlug: string, vehicleSlug: string): number => {
+  const vehicle = FLEET_DATA[vehicleSlug];
+  if (!vehicle) return 0;
+
+  const pricePerKm = Number(vehicle.pricePerKm);
+  const minKm = Number(vehicle.minKm);
+
+  // If local city tour
+  if (tourSlug === "vizag-city-tour") {
+    switch (vehicleSlug) {
+      case "swift-dzire":
+      case "toyota-glanza":
+      case "honda-amaze":
+        return 3000;
+      case "ertiga":
+        return 4000;
+      case "innova-crysta":
+        return 5500;
+      case "tempo-traveller":
+        return 9000;
+      case "urbania":
+        return 11000;
+      default:
+        return 3000;
+    }
+  }
+
+  // Otherwise it is an outstation tour
+  let distance = 260; // default Araku
+  let days = 1;
+
+  if (tourSlug === "vizag-araku-3d") {
+    distance = 460;
+    days = 3;
+  } else if (tourSlug === "araku-valley") {
+    distance = 260;
+    days = 1;
+  } else if (tourSlug === "lambasingi") {
+    distance = 220;
+    days = 1;
+  } else if (tourSlug === "arasavalli-temple") {
+    distance = 250;
+    days = 1;
+  } else if (tourSlug === "vanajangi") {
+    distance = 240;
+    days = 1;
+  }
+
+  // Formula: Math.max(distance, minKm * days) * pricePerKm
+  return Math.max(distance, minKm * days) * pricePerKm;
+};
+
+const getVehicleRatesForTour = (tourSlug: string): VehicleRate[] => {
+  return [
+    { model: "Swift Dzire", pax: "4", price: calculateTourPrice(tourSlug, "swift-dzire").toLocaleString('en-IN'), image: "/images/fleet/swift_dzire.png" },
+    { model: "Ertiga", pax: "6", price: calculateTourPrice(tourSlug, "ertiga").toLocaleString('en-IN'), image: "/images/fleet/ertiga.png" },
+    { model: "Toyota Glanza", pax: "4", price: calculateTourPrice(tourSlug, "toyota-glanza").toLocaleString('en-IN'), image: "/images/fleet/glanza.png" },
+    { model: "Innova Crysta", pax: "7", price: calculateTourPrice(tourSlug, "innova-crysta").toLocaleString('en-IN'), image: "/images/fleet/innova_crysta.png" },
+    { model: "Tempo Traveller", pax: "17", price: calculateTourPrice(tourSlug, "tempo-traveller").toLocaleString('en-IN'), image: "/images/fleet/tempo_traveller.png" },
+    { model: "Honda Amaze", pax: "4", price: calculateTourPrice(tourSlug, "honda-amaze").toLocaleString('en-IN'), image: "/images/fleet/honda_amaze.png" },
+    { model: "Urbania", pax: "16", price: calculateTourPrice(tourSlug, "urbania").toLocaleString('en-IN'), image: "/images/fleet/urbania.png" }
+  ];
+};
+
 export const TOURS_DATA: Record<string, Tour> = {
   "vizag-araku-3d": {
     slug: "vizag-araku-3d",
@@ -62,16 +130,14 @@ export const TOURS_DATA: Record<string, Tour> = {
       "/images/tours/lambasingi.png"
     ],
     duration: "3 Days / 2 Nights",
-    basePrice: "12,000",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "12,000", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "15,000", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "12,000", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "17,000", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "30,000", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "12,000", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "35,000", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 460,
+    days: 3,
+    get basePrice() {
+      return calculateTourPrice("vizag-araku-3d", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("vizag-araku-3d");
+    },
     included: [
       "Private vehicle with driver.",
       "Fuel, driver charges & basic transportation.",
@@ -136,16 +202,14 @@ export const TOURS_DATA: Record<string, Tour> = {
     highlights: ["Galikonda View Point", "Borra Caves", "Coffee Museum", "Padmapuram Gardens", "Chaprai Waterfalls"],
     images: ["/images/tours/araku_caves.png", "/images/tours/vizag_araku.png", "/images/tours/lambasingi.png"],
     duration: "13 Hours",
-    basePrice: "5,000",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "5,000", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "6,500", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "5,000", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "8,500", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "14,000", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "5,000", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "16,500", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 260,
+    days: 1,
+    get basePrice() {
+      return calculateTourPrice("araku-valley", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("araku-valley");
+    },
     included: ["Private vehicle with driver.", "Fuel and driver charges."],
     notIncluded: ["Entry fees", "Parking and tolls"],
     itinerary: []
@@ -157,16 +221,14 @@ export const TOURS_DATA: Record<string, Tour> = {
     highlights: ["Strawberry Farms", "Thajangi Reservoir", "Misty View Points", "Coffee & Pepper Plantations", "Kothapalli Waterfalls"],
     images: ["/images/tours/lambasingi.png", "/images/tours/vanajangi.png", "/images/tours/araku_caves.png"],
     duration: "13 Hours",
-    basePrice: "5,500",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "5,500", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "7,000", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "5,500", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "9,000", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "15,500", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "5,500", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "18,000", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 220,
+    days: 1,
+    get basePrice() {
+      return calculateTourPrice("lambasingi", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("lambasingi");
+    },
     included: ["Private vehicle with driver.", "Fuel and driver charges."],
     notIncluded: ["Entry fees", "Parking and tolls"],
     itinerary: []
@@ -178,16 +240,14 @@ export const TOURS_DATA: Record<string, Tour> = {
     highlights: ["Arasavalli Sun Temple", "Srikurmam Vishnu Temple", "Spiritual Guidance", "Comfortable Pilgrimage", "Local Prasadam Experience"],
     images: ["/images/tours/arasavalli.png", "/images/tours/vizag_north.png", "/images/tours/vizag_south.png"],
     duration: "12 Hours",
-    basePrice: "4,500",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "4,500", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "6,000", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "4,500", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "8,000", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "14,500", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "4,500", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "17,000", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 250,
+    days: 1,
+    get basePrice() {
+      return calculateTourPrice("arasavalli-temple", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("arasavalli-temple");
+    },
     included: ["Private vehicle with driver.", "Fuel and driver charges."],
     notIncluded: ["Entry fees", "Parking and tolls"],
     itinerary: []
@@ -199,16 +259,14 @@ export const TOURS_DATA: Record<string, Tour> = {
     highlights: ["Sea of Clouds View", "Sunrise Trekking", "Early Morning Adventure", "Paderu Valley Sightseeing", "Local Hill Cuisine"],
     images: ["/images/tours/vanajangi.png", "/images/tours/lambasingi.png", "/images/tours/araku_caves.png"],
     duration: "13 Hours",
-    basePrice: "5,000",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "5,000", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "6,500", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "5,000", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "8,500", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "14,000", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "5,000", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "16,500", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 240,
+    days: 1,
+    get basePrice() {
+      return calculateTourPrice("vanajangi", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("vanajangi");
+    },
     included: ["Private vehicle with driver.", "Fuel and driver charges."],
     notIncluded: ["Entry fees", "Parking and tolls"],
     itinerary: []
@@ -232,16 +290,14 @@ export const TOURS_DATA: Record<string, Tour> = {
     ],
     images: ["/images/tours/vizag_north.png", "/images/tours/vizag_south.png", "/images/tours/vizag_city.png"],
     duration: "12 Hours",
-    basePrice: "3,000",
-    vehicleRates: [
-      { model: "Swift Dzire", pax: "4", price: "3,000", image: "/images/fleet/swift_dzire.png" },
-      { model: "Ertiga", pax: "6", price: "4,000", image: "/images/fleet/ertiga.png" },
-      { model: "Toyota Glanza", pax: "4", price: "3,000", image: "/images/fleet/glanza.png" },
-      { model: "Innova Crysta", pax: "7", price: "5,500", image: "/images/fleet/innova_crysta.png" },
-      { model: "Tempo Traveller", pax: "17", price: "9,000", image: "/images/fleet/tempo_traveller.png" },
-      { model: "Honda Amaze", pax: "4", price: "3,000", image: "/images/fleet/honda_amaze.png" },
-      { model: "Urbania", pax: "16", price: "11,000", image: "/images/fleet/urbania.png" }
-    ],
+    distanceKm: 100,
+    days: 1,
+    get basePrice() {
+      return calculateTourPrice("vizag-city-tour", "swift-dzire").toLocaleString('en-IN');
+    },
+    get vehicleRates() {
+      return getVehicleRatesForTour("vizag-city-tour");
+    },
     included: ["Private vehicle with driver.", "Fuel and driver charges.", "Pickup and drop-off."],
     notIncluded: ["Entry fees to museums/parks.", "Parking and tolls.", "Meals and snacks."],
     itinerary: [
