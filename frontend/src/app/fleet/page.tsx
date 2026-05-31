@@ -7,9 +7,11 @@ import Link from "next/link";
 import { ROUTES } from "@/lib/navigation";
 import SectionReveal from "@/components/ui/SectionReveal";
 import { cn } from "@/lib/utils";
+import FleetCard from "@/components/fleet/FleetCard";
 
 const fullFleet = [
   {
+    slug: "swift-dzire",
     model: "Swift Dzire",
     type: "Premium Sedan",
     pricePerKm: "14",
@@ -19,6 +21,7 @@ const fullFleet = [
     color: "emerald"
   },
   {
+    slug: "toyota-glanza",
     model: "Toyota Glanza",
     type: "Luxury Hatchback",
     pricePerKm: "14",
@@ -28,6 +31,7 @@ const fullFleet = [
     color: "emerald"
   },
   {
+    slug: "honda-amaze",
     model: "Honda Amaze",
     type: "Compact Luxury",
     pricePerKm: "14",
@@ -37,6 +41,7 @@ const fullFleet = [
     color: "emerald"
   },
   {
+    slug: "ertiga",
     model: "Ertiga",
     type: "Family SUV / MUV",
     pricePerKm: "18",
@@ -46,6 +51,7 @@ const fullFleet = [
     color: "orange"
   },
   {
+    slug: "innova-crysta",
     model: "Innova Crysta",
     type: "Executive Luxury",
     pricePerKm: "20",
@@ -55,6 +61,7 @@ const fullFleet = [
     color: "emerald"
   },
   {
+    slug: "tempo-traveller",
     model: "Tempo Traveller",
     type: "Group Luxury",
     pricePerKm: "35",
@@ -64,12 +71,33 @@ const fullFleet = [
     color: "emerald"
   },
   {
+    slug: "urbania",
     model: "Urbania",
     type: "Ultra-Luxury Coach",
     pricePerKm: "40",
     pax: "16",
     features: ["VIP Recliner Seats", "Ambient Lighting", "Advanced Suspension", "On-board Concierge"],
     image: "/images/fleet/urbania.png",
+    color: "orange"
+  },
+  {
+    slug: "luxury-bus",
+    model: "Luxury Bus",
+    type: "Premium Tour Coach",
+    pricePerKm: "60",
+    pax: "40",
+    features: ["AC", "Reclining Seats", "Premium Entertainment", "Professional Captain"],
+    image: "/images/fleet/bus.png",
+    color: "orange"
+  },
+  {
+    slug: "mini-bus",
+    model: "21-Seater Mini Bus",
+    type: "Executive Mini Coach",
+    pricePerKm: "45",
+    pax: "21",
+    features: ["AC", "Push-back Seats", "Dynamic Audio/TV", "Ample Luggage space", "Professional Captain"],
+    image: "/images/fleet/minibus.png",
     color: "orange"
   }
 ];
@@ -114,68 +142,15 @@ const FleetPage = () => {
           <SectionReveal>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {fullFleet.map((car, i) => (
-                <motion.div
-                  key={car.model}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.1 }}
-                  className="group relative flex flex-col bg-white dark:bg-emerald-950/10 border border-slate-100 dark:border-emerald-500/10 rounded-[2.5rem] overflow-hidden hover:shadow-2xl hover:shadow-emerald-500/10 transition-all duration-500"
-                >
-                  {/* Image Container */}
-                  <div className="relative h-64 overflow-hidden bg-slate-50 dark:bg-emerald-900/20">
-                    <img
-                      src={car.image}
-                      alt={car.model}
-                      className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-700"
-                    />
-                    <div className="absolute top-6 left-6">
-                      <span className={cn(
-                        "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-white shadow-lg",
-                        car.color === "emerald" ? "bg-emerald-600 shadow-emerald-600/20" : "bg-orange-600 shadow-orange-600/20"
-                      )}>
-                        {car.type}
-                      </span>
-                    </div>
-                    <div className="absolute top-6 right-6 flex flex-col items-end">
-                      <div className="text-[10px] font-black text-slate-400 dark:text-emerald-100/40 uppercase tracking-widest mb-1">Starts From</div>
-                      <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">₹{car.pricePerKm}/km</div>
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-8 space-y-6 flex-1 flex flex-col">
-                    <div>
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">{car.model}</h3>
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-emerald-100/40 font-bold text-xs">
-                          <Users className="w-4 h-4 text-emerald-500" />
-                          {car.pax} Seats
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-500 dark:text-emerald-100/40 font-bold text-xs">
-                          <Luggage className="w-4 h-4 text-emerald-500" />
-                          Ample Boot
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 flex-1">
-                      {car.features.map((feature) => (
-                        <div key={feature} className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-emerald-100/60">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                          {feature}
-                        </div>
-                      ))}
-                    </div>
-
-                    <Link
-                      href="/booking/vizag-full-city-tour"
-                      className="block w-full py-4 rounded-xl bg-slate-900 text-white font-bold text-center hover:bg-emerald-600 transition-all shadow-lg shadow-slate-900/10"
-                    >
-                      Book This Vehicle
-                    </Link>
-                  </div>
-                </motion.div>
+                <FleetCard
+                  key={car.slug}
+                  slug={car.slug}
+                  model={car.model}
+                  pricePerKm={car.pricePerKm}
+                  pax={car.pax}
+                  image={car.image}
+                  index={i}
+                />
               ))}
             </div>
           </SectionReveal>
@@ -227,7 +202,7 @@ const FleetPage = () => {
         </div>
       </section>
 
-      </main>
+    </main>
   );
 };
 

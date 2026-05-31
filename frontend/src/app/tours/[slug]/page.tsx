@@ -24,10 +24,12 @@ import {
   User,
   MessageCircle,
   Pencil,
-  AlertCircle
+  AlertCircle,
+  Check
 } from "lucide-react";
 import { TOURS_DATA, VehicleRate } from "@/lib/tours";
 import { cn } from "@/lib/utils";
+import { getFormattedVehicleTermsList, getVehicleTerms } from "@/lib/rates";
 
 type BookingStep = "select" | "summary" | "checkout";
 
@@ -48,6 +50,7 @@ const TourDetailsPage = () => {
       setActiveTab("overview");
       setTripMode("round-trip");
       setPassengerCount(1);
+      setTermsAccepted(false);
     }
   }, [tour?.slug]);
 
@@ -63,6 +66,7 @@ const TourDetailsPage = () => {
   });
   const [paymentOption, setPaymentOption] = useState<"part" | "full">("part");
   const [hasGst, setHasGst] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const parsePrice = (priceStr: string) => {
     return parseInt(priceStr.replace(/,/g, ""), 10) || 0;
@@ -75,6 +79,13 @@ const TourDetailsPage = () => {
     return parsePrice(selectedVehicle.price);
   };
 
+  const getDriverBhatta = () => {
+    if (!selectedVehicle) return 0;
+    const terms = getVehicleTerms(undefined, selectedVehicle.model, selectedVehicle.pax);
+    const days = tour.slug === "vizag-city-tour" ? 1 : (tour.days || 1);
+    return terms.driverBhatta * days;
+  };
+
   if (!tour) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white">
@@ -85,12 +96,16 @@ const TourDetailsPage = () => {
   }
 
   const handleFinalBooking = () => {
+    const bhatta = getDriverBhatta();
+    const baseFare = getBookingPrice() - bhatta;
     const message = `*NRK TRAVELS - NEW BOOKING REQUEST*
 --------------------------------
 *Package:* ${tour.title}
 *Vehicle:* ${selectedVehicle?.model} (${selectedVehicle?.pax} capacity)
 *Passengers:* ${passengerCount} persons
 *Trip Mode:* ${tripMode === 'one-way' ? 'One Way' : 'Round Trip'}
+*Package Fare:* ₹${baseFare.toLocaleString('en-IN')}
+*Driver Bhatta:* ₹${bhatta.toLocaleString('en-IN')} (${tour.days || 1} Days)
 *Total Fare:* ₹${getBookingPrice().toLocaleString('en-IN')}
 *Payment Plan:* ${paymentOption === 'part' ? 'Part Pay (30%)' : 'Full Pay'}
 
@@ -541,22 +556,60 @@ Please confirm availability and share the payment link.`;
                       </AnimatePresence>
                     </div>
 
+                    {/* Vehicle Specific Dynamic Terms & Conditions */}
                     <div className="pt-10 border-t border-slate-100 space-y-6">
-                      <p className="text-[10px] font-bold text-slate-400 leading-relaxed text-center">
-                        By proceeding to book, I agree to Vizag Taxi Hub's <Link href="#" className="text-emerald-600 hover:underline">Privacy Policy</Link>, <Link href="#" className="text-emerald-600 hover:underline">Terms of Service</Link>, <Link href="#" className="text-emerald-600 hover:underline">User Agreement</Link> & <Link href="#" className="text-emerald-600 hover:underline">Cancellation Rules</Link>
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                          <Info className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-black text-slate-900 uppercase tracking-tight">Terms & Conditions {selectedVehicle ? `(${selectedVehicle.model})` : ""}</h4>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Please review before proceeding</p>
+                        </div>
+                      </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {getFormattedVehicleTermsList(undefined, selectedVehicle?.model, selectedVehicle?.pax).map((term, i) => (
+                          <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 border border-slate-100/50">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight leading-relaxed">{term}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setTermsAccepted(!termsAccepted)}
+                        className={cn(
+                          "w-full flex items-center gap-4 p-5 rounded-2xl border transition-all text-left",
+                          termsAccepted
+                            ? "bg-emerald-50/50 border-emerald-500 text-emerald-950"
+                            : "bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-200"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                          termsAccepted ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300"
+                        )}>
+                          {termsAccepted && <Check className="w-3.5 h-3.5" />}
+                        </div>
+                        <p className="text-xs font-black">I agree to the vehicle-specific Terms of Service, Privacy Policy, and Cancellation Rules.</p>
+                      </button>
+                    </div>
+
+                    <div className="pt-6 space-y-4">
                       <div className="space-y-4">
                         <button
                           onClick={() => {
-                            if (formData.fullName && formData.phone && formData.email) {
+                            if (formData.fullName && formData.phone && formData.email && termsAccepted) {
                               handleFinalBooking();
                             }
                           }}
+                          disabled={!(formData.fullName && formData.phone && formData.email && termsAccepted)}
                           className={cn(
                             "w-full h-16 rounded-2xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest transition-all shadow-xl",
-                            (formData.fullName && formData.phone && formData.email)
-                              ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
+                            (formData.fullName && formData.phone && formData.email && termsAccepted)
+                              ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700 cursor-pointer"
                               : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
                           )}
                         >
@@ -662,7 +715,7 @@ Please confirm availability and share the payment link.`;
                       <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 mb-6">
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pricing Model</p>
                         <p className="text-[10px] font-bold text-slate-400 italic mt-1">
-                          Full vehicle package — ₹{getBookingPrice().toLocaleString("en-IN")} total
+                          Package fare (₹{(getBookingPrice() - getDriverBhatta()).toLocaleString("en-IN")}) + Driver Bhatta (₹{getDriverBhatta().toLocaleString("en-IN")})
                         </p>
                       </div>
 
@@ -671,10 +724,14 @@ Please confirm availability and share the payment link.`;
                         <div className="space-y-3">
                           <div className="flex justify-between items-center">
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Package fare</span>
-                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</span>
+                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{(getBookingPrice() - getDriverBhatta()).toLocaleString('en-IN')}</span>
                           </div>
                           <div className="flex justify-between items-center pt-3 border-t border-slate-100/50">
-                            <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total Price</span>
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Driver Bhatta ({tour.slug === "vizag-city-tour" ? 1 : (tour.days || 1)} Days)</span>
+                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{getDriverBhatta().toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+                            <span className="text-sm font-black text-slate-900 uppercase tracking-widest font-black">Total Price</span>
                             <span className="text-2xl font-black text-slate-900 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</span>
                           </div>
                         </div>

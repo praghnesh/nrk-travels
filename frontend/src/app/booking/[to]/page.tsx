@@ -36,6 +36,7 @@ import { FLEET_DATA } from "@/lib/fleet";
 import { DESTINATIONS } from "@/lib/destinations";
 import DestinationsSection from "@/components/tours/DestinationsSection";
 import { cn } from "@/lib/utils";
+import { getFormattedVehicleTermsList, getVehicleTerms } from "@/lib/rates";
 
 const LOCAL_SUGGESTIONS = [
   { display_name: "Amadalavalasa, Srikakulam, Andhra Pradesh, India", lat: "18.4124", lon: "83.9038", address: { postcode: "532185", village: "Amadalavalasa" } },
@@ -88,7 +89,7 @@ const POPULAR_PICKUPS = [
 const getFallbackCoordinates = (placeName: string) => {
   if (!placeName) return null;
   const cleanName = placeName.toLowerCase();
-  
+
   // Hardcoded additional popular destinations just in case
   const extraFallbacks: Record<string, { lat: number; lon: number; name: string }> = {
     "bangalore": { lat: 12.9716, lon: 77.5946, name: "Bangalore, Karnataka, India" },
@@ -192,7 +193,7 @@ const BookingPageContent = () => {
   }, [normalizedToSlug]);
 
   const isAirportMode = normalizedToSlug === "vizag-airport-transfer" || normalizedToSlug.includes("airport");
-  const [tripType, setTripType] = useState<"one-way" | "round-trip" >(() => {
+  const [tripType, setTripType] = useState<"one-way" | "round-trip">(() => {
     return isTempoMode ? "round-trip" : "one-way";
   });
   const [airportTrip, setAirportTrip] = useState<"from-airport" | "to-airport">("from-airport");
@@ -204,6 +205,7 @@ const BookingPageContent = () => {
   const [activeTab, setActiveTab] = useState<"overview" | "itinerary" | "policy">("overview");
   const [paymentOption, setPaymentOption] = useState<"part" | "full">("part");
   const [hasGST, setHasGST] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [expandedVehicle, setExpandedVehicle] = useState<string | null>(null);
   const [pickupDate, setPickupDate] = useState<string>("");
   const [returnDate, setReturnDate] = useState<string>("");
@@ -548,7 +550,7 @@ const BookingPageContent = () => {
   useEffect(() => {
     const getRoute = async () => {
       if (!selectedFrom.lat || !selectedTo.lat) return;
-      
+
       setIsLoadingRoute(true);
       setRouteError("");
       try {
@@ -559,7 +561,7 @@ const BookingPageContent = () => {
           const route = data.routes[0];
           const distanceKm = Math.round(route.distance / 1000);
           setCalculatedDistance(distanceKm || 1);
-          
+
           // Format duration
           const durationSec = route.duration;
           const hours = Math.floor(durationSec / 3600);
@@ -568,7 +570,7 @@ const BookingPageContent = () => {
           if (hours > 0) durStr += `${hours}h `;
           durStr += `${minutes}m`;
           setCalculatedDuration(durStr || "10m");
-          
+
           // Get coordinates for Leaflet
           const coords = route.geometry.coordinates.map((c: [number, number]) => [c[1], c[0]] as [number, number]);
           setRouteCoordinates(coords);
@@ -582,10 +584,10 @@ const BookingPageContent = () => {
         const R = 6371; // km
         const dLat = (selectedTo.lat - selectedFrom.lat) * Math.PI / 180;
         const dLon = (selectedTo.lon - selectedFrom.lon) * Math.PI / 180;
-        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                  Math.cos(selectedFrom.lat * Math.PI / 180) * Math.cos(selectedTo.lat * Math.PI / 180) *
-                  Math.sin(dLon/2) * Math.sin(dLon/2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(selectedFrom.lat * Math.PI / 180) * Math.cos(selectedTo.lat * Math.PI / 180) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         const dist = Math.round(R * c);
         setCalculatedDistance(dist || destination.distanceKm);
         setCalculatedDuration("Calculated");
@@ -732,24 +734,44 @@ const BookingPageContent = () => {
     );
   }
 
-  // Simplified and corrected fare calculation based on requirements
+  // Simplified and corrected fare calculation based on requirements including Driver Bhatta
   const calculateFare = (pricePerKm: number, slug?: string) => {
     const distance = calculatedDistance || destination.distanceKm;
     const multiplier = (tripType === "round-trip") ? 2 : 1;
     const totalKm = distance * multiplier;
     const chargeKm = distance * multiplier;
-    const total = Math.ceil(chargeKm * pricePerKm);
+
+    // Calculate number of days (default to 1 day for one-way, and based on pickup/return difference for round trip)
+    let calculatedDays = 1;
+    if (tripType === "round-trip" && pickupDate && returnDate) {
+      const dep = new Date(pickupDate);
+      const ret = new Date(returnDate);
+      const diffMs = ret.getTime() - dep.getTime();
+      const diffDays = Math.ceil(diffMs / 86400000);
+      calculatedDays = Math.max(diffDays, 1);
+    }
+
+    // Resolve vehicle terms for Bhatta
+    const terms = getVehicleTerms(slug);
+    const bhatta = terms.driverBhatta * calculatedDays;
+
+    const basePrice = Math.ceil(chargeKm * pricePerKm);
+    const total = basePrice + bhatta;
+
     return {
       total: total,
       totalKm: totalKm,
-      chargeKm: chargeKm
+      chargeKm: chargeKm,
+      bhatta: bhatta,
+      base: basePrice,
+      days: calculatedDays
     };
   };
 
   const totalAmount = useMemo(() => {
     if (!selectedVehicle) return 0;
     return calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug).total;
-  }, [selectedVehicle, calculatedDistance, tripType]);
+  }, [selectedVehicle, calculatedDistance, tripType, pickupDate, returnDate]);
 
   const partPayAmount = Math.ceil(totalAmount * 0.3);
 
@@ -1190,7 +1212,7 @@ const BookingPageContent = () => {
                 className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-bold focus:ring-2 focus:ring-emerald-500 transition-all text-slate-900"
               />
             </div>
-            
+
             {/* Return Date */}
             {tripType === "round-trip" && (
               <div className="space-y-4">
@@ -1299,7 +1321,7 @@ const BookingPageContent = () => {
                 className="w-full h-full border-none rounded-[2rem]"
                 title="Route Map"
               />
-              
+
               {isLoadingRoute && (
                 <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[2px] flex items-center justify-center z-20 transition-all rounded-[2rem]">
                   <div className="bg-white/80 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3">
@@ -1308,7 +1330,7 @@ const BookingPageContent = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="absolute top-6 left-6 flex bg-white/90 backdrop-blur-md p-1 rounded-2xl shadow-2xl border border-white z-20">
                 <button
                   type="button"
@@ -1351,74 +1373,74 @@ const BookingPageContent = () => {
           {/* Vertical Vehicle List */}
           <div className="space-y-6">
             {Object.values(FLEET_DATA)
-              .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania")
+              .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania" || vehicle.slug === "luxury-bus" || vehicle.slug === "mini-bus")
               .map((vehicle) => {
-              const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
-              const isExpanded = expandedVehicle === vehicle.slug;
+                const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
+                const isExpanded = expandedVehicle === vehicle.slug;
 
-              return (
-                <div key={vehicle.slug} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:border-emerald-500/30 transition-all duration-500">
-                  <div className="p-8 flex flex-col md:flex-row items-center gap-10">
-                    <div className="w-48 h-32 relative bg-slate-50 rounded-3xl p-4 flex items-center justify-center">
-                      <Image src={vehicle.images[0]} alt={vehicle.model} fill className="object-contain p-4 group-hover:scale-110 transition-all duration-700" />
-                    </div>
-
-                    <div className="flex-1 space-y-4 text-center md:text-left">
-                      <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{vehicle.model}</h3>
-                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Users className="w-3.5 h-3.5 text-emerald-500" /> {vehicle.pax} Seats</span>
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Briefcase className="w-3.5 h-3.5 text-emerald-500" /> 3 Bags</span>
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Fuel className="w-3.5 h-3.5 text-emerald-500" /> Petrol</span>
+                return (
+                  <div key={vehicle.slug} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group hover:border-emerald-500/30 transition-all duration-500">
+                    <div className="p-8 flex flex-col md:flex-row items-center gap-10">
+                      <div className="w-48 h-32 relative bg-slate-50 rounded-3xl p-4 flex items-center justify-center">
+                        <Image src={vehicle.images[0]} alt={vehicle.model} fill className="object-contain p-4 group-hover:scale-110 transition-all duration-700" />
                       </div>
-                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
-                        {["AC", "Music System", "Charging Point"].map(f => (
-                          <span key={f} className="px-3 py-1.5 rounded-lg bg-emerald-50 text-[8px] font-black text-emerald-600 uppercase tracking-widest border border-emerald-100">{f}</span>
-                        ))}
-                      </div>
-                      <button onClick={() => setExpandedVehicle(isExpanded ? null : vehicle.slug)} className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] pt-4 hover:underline">
-                        View Details <ChevronDown className={cn("w-4 h-4 transition-all", isExpanded && "rotate-180")} />
-                      </button>
-                    </div>
 
-                    <div className="flex flex-col items-center md:items-end gap-6">
-                      <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Fare</p>
-                        <p className="text-3xl font-black text-emerald-600 tracking-tighter">₹{fares.total.toLocaleString()}</p>
-                        <p className="text-[10px] font-black text-slate-500 mt-1">
-                          Up to {vehicle.pax} passengers
-                        </p>
-                        <p className={cn("text-[9px] font-bold text-slate-400 mt-0.5")}>
-                          {fares.totalKm} KM @ ₹{vehicle.pricePerKm}/KM
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleBookNow(vehicle)}
-                        className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20"
-                      >
-                        Book Now
-                      </button>
-                    </div>
-                  </div>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="bg-slate-50/50 border-t border-slate-100 p-8">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                          <div className="space-y-2">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">Features</p>
-                            <ul className="space-y-1 text-xs font-bold text-slate-600">
-                              <li>✓ Power Windows</li>
-                              <li>✓ Central Locking</li>
-                              <li>✓ Airbags</li>
-                            </ul>
-                          </div>
+                      <div className="flex-1 space-y-4 text-center md:text-left">
+                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{vehicle.model}</h3>
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Users className="w-3.5 h-3.5 text-emerald-500" /> {vehicle.pax} Seats</span>
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Briefcase className="w-3.5 h-3.5 text-emerald-500" /> 3 Bags</span>
+                          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 text-[10px] font-black text-slate-500 uppercase tracking-widest border border-slate-100"><Fuel className="w-3.5 h-3.5 text-emerald-500" /> Petrol</span>
                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 pt-2">
+                          {["AC", "Music System", "Charging Point"].map(f => (
+                            <span key={f} className="px-3 py-1.5 rounded-lg bg-emerald-50 text-[8px] font-black text-emerald-600 uppercase tracking-widest border border-emerald-100">{f}</span>
+                          ))}
+                        </div>
+                        <button onClick={() => setExpandedVehicle(isExpanded ? null : vehicle.slug)} className="flex items-center gap-2 text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] pt-4 hover:underline">
+                          View Details <ChevronDown className={cn("w-4 h-4 transition-all", isExpanded && "rotate-180")} />
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col items-center md:items-end gap-6">
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Fare</p>
+                          <p className="text-3xl font-black text-emerald-600 tracking-tighter">₹{fares.total.toLocaleString()}</p>
+                          <p className="text-[10px] font-black text-slate-500 mt-1">
+                            Up to {vehicle.pax} passengers
+                          </p>
+                          <p className={cn("text-[9px] font-bold text-slate-400 mt-0.5")}>
+                            {fares.totalKm} KM @ ₹{vehicle.pricePerKm}/KM
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleBookNow(vehicle)}
+                          className="px-10 py-4 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20"
+                        >
+                          Book Now
+                        </button>
+                      </div>
+                    </div>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="bg-slate-50/50 border-t border-slate-100 p-8">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-black text-slate-400 uppercase">Features</p>
+                              <ul className="space-y-1 text-xs font-bold text-slate-600">
+                                <li>✓ Power Windows</li>
+                                <li>✓ Central Locking</li>
+                                <li>✓ Airbags</li>
+                              </ul>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
           </div>
 
           <AnimatePresence>
@@ -1544,27 +1566,29 @@ const BookingPageContent = () => {
           </div>
         </div>
 
-        {selectedVehicle && (
-          <div className="grid md:grid-cols-3 gap-6 p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
-            <div className="space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Distance</p>
-              <p className="text-lg font-black text-slate-900">
-                {(() => {
-                  const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
-                  return `${f.totalKm} KM`;
-                })()}
-              </p>
+        {selectedVehicle && (() => {
+          const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
+          return (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Distance</p>
+                <p className="text-lg font-black text-slate-900">{f.totalKm} KM</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Base Rate</p>
+                <p className="text-lg font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Driver Bhatta ({f.days} Day{f.days > 1 ? "s" : ""})</p>
+                <p className="text-lg font-black text-slate-900">₹{f.bhatta.toLocaleString("en-IN")}</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Fare</p>
+                <p className="text-lg font-black text-emerald-600">₹{f.total.toLocaleString("en-IN")}</p>
+              </div>
             </div>
-            <div className="space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rate</p>
-              <p className="text-lg font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</p>
-            </div>
-            <div className="space-y-2">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Fare</p>
-              <p className="text-lg font-black text-emerald-600">₹{totalAmount.toLocaleString("en-IN")}</p>
-            </div>
-          </div>
-        )}
+          );
+        })()}
 
         <div className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pricing Model</p>
@@ -1642,34 +1666,49 @@ const BookingPageContent = () => {
           </div>
         </div>
 
-        {/* Terms & Conditions Placeholder like in screenshot */}
+        {/* Dynamic Terms & Conditions based on selected vehicle */}
         <div className="pt-14 border-t border-slate-100 space-y-10">
           <div className="flex items-center gap-6">
             <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500">
               <Info className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Terms & Conditions</h3>
+              <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                Terms & Conditions {selectedVehicle ? `(${selectedVehicle.model})` : ""}
+              </h3>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Please review before proceeding</p>
             </div>
           </div>
           <div className="grid md:grid-cols-2 gap-6">
-            {[
-              "Valid ID proof is mandatory for all travelers",
-              "Reporting time is 15 minutes before departure",
-              "Refunds for cancellations will be processed in 5-7 days",
-              "Management is not responsible for loss of belongings"
-            ].map((term, i) => (
-              <div key={i} className="flex items-center gap-3 p-5 rounded-2xl bg-slate-50 border border-slate-100/50">
-                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">{term}</span>
+            {getFormattedVehicleTermsList(
+              selectedVehicle?.slug || "",
+              selectedVehicle?.model || "",
+              selectedVehicle?.pax || ""
+            ).map((term, i) => (
+              <div key={i} className="flex items-start gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100/50">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight leading-relaxed">{term}</span>
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-4 p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100">
-            <div className="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-white"><Check className="w-3.5 h-3.5" /></div>
-            <p className="text-[11px] font-bold text-emerald-900">I agree to the <span className="underline cursor-pointer">Terms of Service</span>, <span className="underline cursor-pointer">Cancellation Policy</span>, and <span className="underline cursor-pointer">Privacy Policy</span>.</p>
-          </div>
+          <button
+            type="button"
+            onClick={() => setTermsAccepted(!termsAccepted)}
+            className={cn(
+              "w-full flex items-center gap-4 p-6 rounded-2xl border transition-all text-left",
+              termsAccepted
+                ? "bg-emerald-50/50 border-emerald-500 text-emerald-950"
+                : "bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-200"
+            )}
+          >
+            <div className={cn(
+              "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+              termsAccepted ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300"
+            )}>
+              {termsAccepted && <Check className="w-3.5 h-3.5" />}
+            </div>
+            <p className="text-xs font-black">I agree to the vehicle-specific Terms of Service, Cancellation Policy, and Privacy Policy.</p>
+          </button>
         </div>
 
         <div className="pt-14 border-t border-slate-100 space-y-10">
@@ -1724,9 +1763,17 @@ const BookingPageContent = () => {
 
           <button
             onClick={initiatePayment}
-            className="w-full h-24 bg-emerald-600 text-white rounded-[2rem] font-black text-xl uppercase tracking-[0.2em] hover:bg-emerald-700 transition-all shadow-2xl shadow-emerald-600/30 active:scale-[0.98]"
+            disabled={!termsAccepted || isProcessing}
+            className={cn(
+              "w-full h-24 rounded-[2rem] font-black text-xl uppercase tracking-[0.2em] transition-all shadow-2xl active:scale-[0.98]",
+              termsAccepted && !isProcessing
+                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-emerald-600/30 cursor-pointer"
+                : "bg-emerald-600/30 text-white/50 cursor-not-allowed shadow-none"
+            )}
           >
-            Proceed to Pay ₹{(paymentOption === 'part' ? partPayAmount : totalAmount).toLocaleString()}
+            {isProcessing
+              ? "Processing..."
+              : `Proceed to Pay ₹${(paymentOption === "part" ? partPayAmount : totalAmount).toLocaleString()}`}
           </button>
         </div>
       </div>
@@ -1738,48 +1785,48 @@ const BookingPageContent = () => {
       <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Select Vehicle</h3>
       <div className="space-y-4">
         {Object.values(FLEET_DATA)
-          .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania")
+          .filter((vehicle) => !isTempoMode || vehicle.slug === "tempo-traveller" || vehicle.slug === "urbania" || vehicle.slug === "luxury-bus" || vehicle.slug === "mini-bus")
           .map((vehicle) => {
-          const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
-          return (
-            <button key={vehicle.slug} onClick={() => handleBookNow(vehicle)} className={cn("w-full p-6 rounded-[2rem] border-2 transition-all flex items-center justify-between group", selectedVehicle?.slug === vehicle.slug ? "border-emerald-500 bg-emerald-50/50" : "border-slate-100 hover:border-emerald-500/30")}>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-12 relative bg-slate-50 rounded-xl overflow-hidden">
-                  <Image src={vehicle.images[0]} alt={vehicle.model} fill className="object-contain p-2" />
-                </div>
-                <div className="text-left">
-                  <p className="text-[13px] font-black text-slate-900 uppercase">{vehicle.model}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[8px] font-black text-slate-400 uppercase">{vehicle.pax} Seats</span>
-                    <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                    <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">₹{vehicle.pricePerKm}/KM</span>
-                    <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                    <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">₹{Math.ceil(fares.total / Number(vehicle.pax))}/head</span>
+            const fares = calculateFare(Number(vehicle.pricePerKm), vehicle.slug);
+            return (
+              <button key={vehicle.slug} onClick={() => handleBookNow(vehicle)} className={cn("w-full p-6 rounded-[2rem] border-2 transition-all flex items-center justify-between group", selectedVehicle?.slug === vehicle.slug ? "border-emerald-500 bg-emerald-50/50" : "border-slate-100 hover:border-emerald-500/30")}>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-12 relative bg-slate-50 rounded-xl overflow-hidden">
+                    <Image src={vehicle.images[0]} alt={vehicle.model} fill className="object-contain p-2" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[13px] font-black text-slate-900 uppercase">{vehicle.model}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[8px] font-black text-slate-400 uppercase">{vehicle.pax} Seats</span>
+                      <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                      <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">₹{vehicle.pricePerKm}/KM</span>
+                      <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                      <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">₹{Math.ceil(fares.total / Number(vehicle.pax))}/head</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-black text-slate-900 tracking-tight">₹{fares.total.toLocaleString()}</p>
-                <p className="text-[8px] font-bold text-slate-400 mt-0.5">
-                  {fares.totalKm} km
-                </p>
-              </div>
-            </button>
-          );
-        })}
+                <div className="text-right">
+                  <p className="text-sm font-black text-slate-900 tracking-tight">₹{fares.total.toLocaleString()}</p>
+                  <p className="text-[8px] font-bold text-slate-400 mt-0.5">
+                    {fares.totalKm} km
+                  </p>
+                </div>
+              </button>
+            );
+          })}
       </div>
     </div>
   );
 
   const renderBookingSummarySidebar = () => {
-    const defaultVehicle = isTempoMode 
+    const defaultVehicle = isTempoMode
       ? Object.values(FLEET_DATA).find(v => v.slug === "tempo-traveller") || Object.values(FLEET_DATA)[0]
       : Object.values(FLEET_DATA)[0];
     const activeVehicle = selectedVehicle || defaultVehicle;
     const fares = calculateFare(Number(activeVehicle.pricePerKm), activeVehicle.slug);
-    const isTempo = activeVehicle.slug.includes("tempo") || activeVehicle.slug.includes("urbania");
+    const isTempo = activeVehicle.slug.includes("tempo") || activeVehicle.slug.includes("urbania") || activeVehicle.slug.includes("bus");
     const formattedDistance = calculatedDistance * (tripType === "round-trip" ? 2 : 1);
-    
+
     return (
       <div className="bg-white rounded-[3rem] p-10 border border-slate-100 shadow-xl space-y-10">
         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Booking Summary</h3>
@@ -1791,7 +1838,7 @@ const BookingPageContent = () => {
             <div className="flex-1 min-w-0">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Trip Type</p>
               <p className="text-sm font-black text-slate-900 uppercase mt-0.5">
-                {isAirportMode 
+                {isAirportMode
                   ? `Airport Transfer (${airportTrip === 'from-airport' ? 'From Airport' : 'To Airport'})`
                   : destination.type === "tour" ? "Tour" : `Outstation (${tripType === 'one-way' ? 'One Way' : 'Round Trip'})`
                 }
@@ -1856,7 +1903,7 @@ const BookingPageContent = () => {
               <Edit2 className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0" />
             </div>
           )}
-          
+
           {selectedVehicle && (
             <div className="p-5 rounded-[2rem] border border-emerald-500 bg-emerald-50/30 flex items-center gap-5 relative">
               <div className="w-20 h-14 relative bg-white rounded-2xl p-2 border border-emerald-100 shadow-sm shrink-0">
@@ -1872,7 +1919,7 @@ const BookingPageContent = () => {
               <CheckCircle2 className="w-6 h-6 text-emerald-600 absolute -top-2 -right-2 bg-white rounded-full shadow-lg" />
             </div>
           )}
-          
+
           {!selectedVehicle && (
             <div className="p-8 rounded-[2rem] bg-slate-50 border border-dashed border-slate-200 text-center">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select a vehicle to see fare details</p>
@@ -1885,24 +1932,31 @@ const BookingPageContent = () => {
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Distance</span>
             <span className="text-sm font-black text-slate-900">{formattedDistance} KM</span>
           </div>
-          {selectedVehicle && (
-            <>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vehicle Name</span>
-                <span className="text-sm font-black text-slate-900 uppercase">{selectedVehicle.model}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price per KM</span>
-                <span className="text-sm font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</span>
-              </div>
-              
-
-            </>
-          )}
+          {selectedVehicle && (() => {
+            const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
+            return (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vehicle Name</span>
+                  <span className="text-sm font-black text-slate-900 uppercase">{selectedVehicle.model}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price per KM</span>
+                  <span className="text-sm font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</span>
+                </div>
+                {f.bhatta > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Driver Bhatta ({f.days} Day{f.days > 1 ? "s" : ""})</span>
+                    <span className="text-sm font-black text-slate-900">₹{f.bhatta.toLocaleString("en-IN")}</span>
+                  </div>
+                )}
+              </>
+            );
+          })()}
           <div className="flex justify-between items-center">
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trip Type</span>
             <span className="text-sm font-black text-slate-900 uppercase">
-              {isAirportMode 
+              {isAirportMode
                 ? `Airport (${airportTrip === 'from-airport' ? 'From' : 'To'})`
                 : tripType === 'one-way' ? 'One Way' : 'Round Trip'
               }
@@ -1912,7 +1966,32 @@ const BookingPageContent = () => {
             <span className="text-lg font-black text-slate-900 uppercase tracking-tighter">Total Price</span>
             <span className="text-3xl font-black text-emerald-600 tracking-tight">₹{totalAmount.toLocaleString()}</span>
           </div>
-          <button className="w-full py-4 rounded-2xl bg-slate-50 text-slate-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 border border-slate-100 hover:bg-emerald-50 transition-all">
+          <button
+            onClick={() => {
+              if (!selectedVehicle) return;
+              const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
+              const message = `
+*New Booking Enquiry - NRK Travels*
+-----------------------------
+*Vehicle:* ${selectedVehicle.model} (${selectedVehicle.type})
+*Pickup:* ${fromSearch}
+*Destination:* ${toSearch}
+*Departure:* ${pickupDate ? new Date(pickupDate).toLocaleString('en-IN') : 'N/A'}
+*Return:* ${returnDate ? new Date(returnDate).toLocaleString('en-IN') : 'N/A'}
+*Trip Type:* ${tripType === 'one-way' ? 'One Way' : 'Round Trip'}
+*Distance:* ~${f.totalKm} KM
+
+*PRICING BREAKDOWN:*
+*Base Price:* ₹${f.base.toLocaleString()}
+*Driver Bhatta:* ₹${f.bhatta.toLocaleString()} (${f.days} Day${f.days > 1 ? "s" : ""})
+*Total Estimated Fare:* ₹${f.total.toLocaleString()}
+-----------------------------
+Please confirm availability and book my ride!
+`.trim();
+              window.open(`https://api.whatsapp.com/send?phone=919111989222&text=${encodeURIComponent(message)}`, "_blank");
+            }}
+            className="w-full py-4 rounded-2xl bg-slate-50 text-slate-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 border border-slate-100 hover:bg-emerald-50 transition-all"
+          >
             <MessageCircle className="w-4 h-4" /> Share Summary on WhatsApp
           </button>
         </div>

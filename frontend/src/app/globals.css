@@ -112,6 +112,13 @@
   background-image: linear-gradient(to right, #2563eb, #60a5fa);
 }
 
+.text-gradient-orange {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  background-image: linear-gradient(to right, #f97316, #ea580c);
+}
+
 .text-gradient-slate {
   background-clip: text;
   -webkit-background-clip: text;
@@ -125,6 +132,10 @@
 
 .bg-gradient-blue {
   background-image: linear-gradient(to bottom right, #1e40af, #1d4ed8, #2563eb);
+}
+
+.bg-gradient-orange {
+  background-image: linear-gradient(to bottom right, #f97316, #ea580c, #c2410c);
 }
 
 /* Scrollbar Hide */

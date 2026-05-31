@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { GROUP_TOURS_DATA, GroupTour } from "@/lib/tours";
+import { getFormattedVehicleTermsList } from "@/lib/rates";
 const GroupTourDetailsPage = () => {
   const params = useParams();
   const slug = params.slug as string;
@@ -1198,12 +1199,15 @@ const GroupTourDetailsPage = () => {
 
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                          "Valid ID proof (Aadhar/Voter ID) is mandatory for all travelers.",
-                          "Reporting time is 15 minutes before the scheduled boarding.",
-                          "Refunds for cancellations will be processed within 5-7 working days.",
-                          "Management is not responsible for loss of personal belongings."
-                        ].map((term, i) => (
+                        {(bookingType === "full-vehicle"
+                          ? getFormattedVehicleTermsList(selectedVehicle, undefined, selectedVehicle === "urbania" ? 16 : 17)
+                          : [
+                              "Valid ID proof (Aadhar/Voter ID) is mandatory for all travelers.",
+                              "Reporting time is 15 minutes before the scheduled boarding.",
+                              "Refunds for cancellations will be processed within 5-7 working days.",
+                              "Management is not responsible for loss of personal belongings."
+                            ]
+                        ).map((term, i) => (
                           <div key={i} className="flex gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
                             <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
                             <p className="text-[10px] font-bold text-slate-600 leading-relaxed uppercase tracking-tight">{term}</p>

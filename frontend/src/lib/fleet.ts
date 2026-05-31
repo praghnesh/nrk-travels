@@ -95,5 +95,29 @@ export const FLEET_DATA: Record<string, Vehicle> = {
     images: ["/images/fleet/urbania.png", "/images/fleet/tempo_traveller.png"],
     minKm: "300",
     isPremium: true
+  },
+  "luxury-bus": {
+    slug: "luxury-bus",
+    model: "Luxury Bus",
+    type: "Luxury Bus",
+    description: "Our premium 40-seater luxury bus is the perfect choice for large groups, corporate outings, and family events. Featuring air conditioning, reclining seats, on-board entertainment, and ample luggage space, it ensures a comfortable travel experience.",
+    pax: "40",
+    pricePerKm: "60",
+    features: ["Air Conditioning", "Reclining Seats", "Ample Luggage space", "LED TV / Audio", "Premium Suspension", "Professional Captain"],
+    images: ["/images/fleet/bus.png"],
+    minKm: "300",
+    isPremium: true
+  },
+  "mini-bus": {
+    slug: "mini-bus",
+    model: "21-Seater Mini Bus",
+    type: "Mini Bus",
+    description: "Our premium 21-seater luxury mini bus is the perfect choice for medium-sized groups, corporate teams, and comfortable family tours. Equipped with air conditioning, push-back reclining seats, dynamic sound system, and spacious storage, it provides an exquisite balance between capacity and agility.",
+    pax: "21",
+    pricePerKm: "45",
+    features: ["Air Conditioning", "Push-back Seats", "Ample Luggage space", "LED TV / Audio", "Premium Suspension", "Professional Captain"],
+    images: ["/images/fleet/minibus.png"],
+    minKm: "300",
+    isPremium: true
   }
 };

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import TourCard from "./TourCard";
+import { TOURS_DATA } from "@/lib/tours";
 
 const tours = [
   {
@@ -87,14 +88,18 @@ const TourCarousel = () => {
     <div className="relative group px-4 lg:px-0">
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-6 py-4">
-          {tours.map((tour, idx) => (
-            <div
-              key={idx}
-              className="flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_31%] xl:flex-[0_0_23%] min-w-0"
-            >
-              <TourCard {...tour} />
-            </div>
-          ))}
+          {tours.map((tour, idx) => {
+            const dynamicTour = TOURS_DATA[tour.slug];
+            const displayPrice = dynamicTour ? dynamicTour.basePrice : tour.price;
+            return (
+              <div
+                key={idx}
+                className="flex-[0_0_85%] sm:flex-[0_0_45%] lg:flex-[0_0_31%] xl:flex-[0_0_23%] min-w-0"
+              >
+                <TourCard {...tour} price={displayPrice} />
+              </div>
+            );
+          })}
         </div>
       </div>
 

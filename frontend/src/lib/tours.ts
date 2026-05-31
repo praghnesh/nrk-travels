@@ -1,4 +1,5 @@
 import { FLEET_DATA } from "./fleet";
+import { getVehicleTerms } from "./rates";
 
 export interface VehicleRate {
   model: string;
@@ -54,25 +55,39 @@ export const calculateTourPrice = (tourSlug: string, vehicleSlug: string): numbe
 
   const pricePerKm = Number(vehicle.pricePerKm);
   const minKm = Number(vehicle.minKm);
+  const terms = getVehicleTerms(vehicleSlug);
 
   // If local city tour
   if (tourSlug === "vizag-city-tour") {
+    let basePrice = 3000;
     switch (vehicleSlug) {
       case "swift-dzire":
       case "toyota-glanza":
       case "honda-amaze":
-        return 3000;
+        basePrice = 3000;
+        break;
       case "ertiga":
-        return 4000;
+        basePrice = 4000;
+        break;
       case "innova-crysta":
-        return 5500;
+        basePrice = 5500;
+        break;
       case "tempo-traveller":
-        return 9000;
+        basePrice = 9000;
+        break;
       case "urbania":
-        return 11000;
+        basePrice = 11000;
+        break;
+      case "luxury-bus":
+        basePrice = 22000;
+        break;
+      case "mini-bus":
+        basePrice = 14000;
+        break;
       default:
-        return 3000;
+        basePrice = 3000;
     }
+    return basePrice + terms.driverBhatta;
   }
 
   // Otherwise it is an outstation tour
@@ -96,8 +111,9 @@ export const calculateTourPrice = (tourSlug: string, vehicleSlug: string): numbe
     days = 1;
   }
 
-  // Formula: Math.max(distance, minKm * days) * pricePerKm
-  return Math.max(distance, minKm * days) * pricePerKm;
+  // Formula: Math.max(distance, minKm * days) * pricePerKm + (driverBhatta * days)
+  const bhatta = terms.driverBhatta * days;
+  return (Math.max(distance, minKm * days) * pricePerKm) + bhatta;
 };
 
 const getVehicleRatesForTour = (tourSlug: string): VehicleRate[] => {
@@ -108,7 +124,9 @@ const getVehicleRatesForTour = (tourSlug: string): VehicleRate[] => {
     { model: "Innova Crysta", pax: "7", price: calculateTourPrice(tourSlug, "innova-crysta").toLocaleString('en-IN'), image: "/images/fleet/innova_crysta.png" },
     { model: "Tempo Traveller", pax: "17", price: calculateTourPrice(tourSlug, "tempo-traveller").toLocaleString('en-IN'), image: "/images/fleet/tempo_traveller.png" },
     { model: "Honda Amaze", pax: "4", price: calculateTourPrice(tourSlug, "honda-amaze").toLocaleString('en-IN'), image: "/images/fleet/honda_amaze.png" },
-    { model: "Urbania", pax: "16", price: calculateTourPrice(tourSlug, "urbania").toLocaleString('en-IN'), image: "/images/fleet/urbania.png" }
+    { model: "Urbania", pax: "16", price: calculateTourPrice(tourSlug, "urbania").toLocaleString('en-IN'), image: "/images/fleet/urbania.png" },
+    { model: "Luxury Bus", pax: "40", price: calculateTourPrice(tourSlug, "luxury-bus").toLocaleString('en-IN'), image: "/images/fleet/bus.png" },
+    { model: "Luxury Mini Bus", pax: "21", price: calculateTourPrice(tourSlug, "mini-bus").toLocaleString('en-IN'), image: "/images/fleet/minibus.png" }
   ];
 };
 

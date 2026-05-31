@@ -56,6 +56,20 @@ const fleet = [
     pax: "16",
     image: "/images/fleet/urbania.png",
   },
+  {
+    slug: "luxury-bus",
+    model: "Luxury Bus",
+    pricePerKm: "60",
+    pax: "40",
+    image: "/images/fleet/bus.png",
+  },
+  {
+    slug: "mini-bus",
+    model: "21-Seater Mini Bus",
+    pricePerKm: "45",
+    pax: "21",
+    image: "/images/fleet/minibus.png",
+  },
 ];
 
 const FleetSection = () => {

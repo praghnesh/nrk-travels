@@ -216,8 +216,8 @@ const BookingForm = ({ activeTab = "outstation" }: { activeTab?: string }) => {
           />
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 ml-1">Trip Direction</label>
-            <div className="flex bg-slate-50 border border-slate-200 p-1.5 rounded-2xl w-full relative h-14 lg:h-16">
-              <div className={cn("absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-orange-600 rounded-xl shadow-lg z-0 transition-all duration-300", airportTrip === "to-airport" ? "translate-x-full" : "translate-x-0")} />
+            <div className="flex bg-slate-50 border border-slate-200 p-1 rounded-2xl w-full relative h-14 lg:h-16 items-center">
+              <div className={cn("absolute top-1 left-1 bottom-1 w-[calc(50%-4px)] bg-orange-600 rounded-xl shadow-md z-0 transition-all duration-300", airportTrip === "to-airport" ? "translate-x-full" : "translate-x-0")} />
               <button onClick={() => setAirportTrip("from-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "from-airport" ? "text-white" : "text-slate-600")}>From Airport</button>
               <button onClick={() => setAirportTrip("to-airport")} className={cn("flex-1 px-2 text-[10px] font-black uppercase tracking-widest z-10 transition-colors duration-300", airportTrip === "to-airport" ? "text-white" : "text-slate-600")}>To Airport</button>
             </div>

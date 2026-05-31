@@ -142,6 +142,7 @@ const BookDriverForm = () => {
                 <option>Personal Driver - Local</option>
                 <option>Outstation Driver</option>
                 <option>Event Driver</option>
+                <option>Bus / Heavy Vehicle Driver</option>
               </select>
               <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                 <ChevronDown className="w-5 h-5" />
