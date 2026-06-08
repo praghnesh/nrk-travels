@@ -8,7 +8,7 @@ let server;
 connectDB().then(() => {
   server = app.listen(config.port, () => {
     console.log(`======================================`);
-    console.log(` NRK Travels Backend Server Started `);
+    console.log(` Vizag Taxi Backend Server Started `);
     console.log(` Port: ${config.port} | Mode: ${config.env} `);
     console.log(`======================================`);
   });

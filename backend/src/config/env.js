@@ -23,7 +23,7 @@ const config = {
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
-    from: process.env.SMTP_FROM || '"NRK Travels" <no-reply@nrtravels.com>'
+    from: process.env.SMTP_FROM || '"Vizag Taxi" <no-reply@nrtravels.com>'
   },
   twilio: {
     accountSid: process.env.TWILIO_ACCOUNT_SID,

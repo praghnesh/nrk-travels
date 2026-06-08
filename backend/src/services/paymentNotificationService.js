@@ -2,16 +2,66 @@ const sendEmail = require('./notifications/sendEmail');
 const sendSMS = require('./notifications/sendSMS');
 const sendWhatsApp = require('./notifications/sendWhatsApp');
 const config = require('../config/env');
+const Vehicle = require('../models/Vehicle.model');
+const VehicleTerm = require('../models/VehicleTerm.model');
 
 /**
  * Get Trip Name dynamically based on booking type
  */
 const getTripName = (booking) => {
-  if (booking.booking_type === 'tour') return booking.tour_id || 'NRK Premium Tour';
-  if (booking.booking_type === 'group_tour') return booking.tour_id || 'NRK Group Tour';
+  if (booking.booking_type === 'tour') return booking.tour_id || 'Vizag Taxi Premium Tour';
+  if (booking.booking_type === 'group_tour') return booking.tour_id || 'Vizag Taxi Group Tour';
   if (booking.booking_type === 'vehicle') return `Vehicle Rental: ${booking.vehicle_id || 'Standard Vehicle'}`;
   if (booking.booking_type === 'hire_driver') return 'Hire a Driver Service';
-  return 'NRK Travels Trip';
+  return 'Vizag Taxi Trip';
+};
+
+/**
+ * Helper to fetch vehicle terms dynamically from the database
+ */
+const fetchVehicleTerms = async (booking) => {
+  let terms = [
+    'Extra kilometers after the package limit will be charged at ₹20/km.',
+    'Extra hours after the package time limit will be charged at ₹400/hour.',
+    'Driver allowance (Bhatta) is ₹200/day.',
+    'Toll gate charges and parking charges must be paid by the customer.',
+    'Driver food and accommodation should be arranged/provided by the customer during outstation trips.',
+    'Any additional charges not included in the package must be borne by the customer.',
+    'Customer should carry valid ID proof during the journey.',
+    'Booking cancellation and refund policy will be applicable as per Vizag Taxi terms.'
+  ];
+
+  try {
+    if (booking.booking_type === 'vehicle' && booking.vehicle_id) {
+      // 1. Fetch vehicle details
+      const vehicle = await Vehicle.findOne({ $or: [{ name: booking.vehicle_id }, { type: booking.vehicle_id }] });
+
+      if (vehicle) {
+        // 2. Fetch specific vehicle terms
+        const specificTerms = await VehicleTerm.findOne({ vehicle_type: { $regex: vehicle.name, $options: 'i' } });
+
+        if (specificTerms && specificTerms.terms && specificTerms.terms.length > 0) {
+          terms = specificTerms.terms;
+        } else {
+          // 3. Fallback to general vehicle type terms
+          const generalTerms = await VehicleTerm.findOne({ vehicle_type: { $regex: vehicle.type, $options: 'i' } });
+
+          if (generalTerms && generalTerms.terms && generalTerms.terms.length > 0) {
+            terms = generalTerms.terms;
+          }
+        }
+      }
+    } else if (booking.booking_type === 'hire_driver') {
+      const driverTerms = await VehicleTerm.findOne({ vehicle_type: 'Honda Amaze' }); // Standard policy for driver hire
+      if (driverTerms && driverTerms.terms) {
+        terms = driverTerms.terms;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching vehicle terms from database:', error);
+  }
+
+  return terms;
 };
 
 /**
@@ -39,7 +89,7 @@ const notifyPostPayment = async (booking) => {
     const isPartial = booking.remaining_balance > 0;
 
     // ----- CUSTOMER MESSAGE BUILDER -----
-    let customerMessage = `Booking Confirmation - NRK Travels\n\n`;
+    let customerMessage = `Booking Confirmation - Vizag Taxi\n\n`;
     customerMessage += `Customer Name: ${booking.customer_name}\n`;
     customerMessage += `Booking ID: ${booking.booking_id}\n`;
     customerMessage += `Vehicle Name / Tour Name: ${tripName}\n`;
@@ -57,24 +107,15 @@ const notifyPostPayment = async (booking) => {
       customerMessage += `Your booking is fully confirmed. Enjoy your trip.\n\n`;
     }
 
-    const termsAndConditions = `Terms & Conditions:
+    const termsList = await fetchVehicleTerms(booking);
+    const termsString = termsList.map(term => `• ${term}`).join('\n');
 
-• Extra kilometers after the package limit will be charged at ₹20/km.
-• Extra hours after the package time limit will be charged at ₹400/hour.
-• Driver allowance (Bhatta) is ₹200/day.
-• Toll gate charges and parking charges must be paid by the customer.
-• Driver food and accommodation should be arranged/provided by the customer during outstation trips.
-• Any additional charges not included in the package must be borne by the customer.
-• Customer should carry valid ID proof during the journey.
-• Booking cancellation and refund policy will be applicable as per NRK Travels terms.
-
-Thank you for choosing NRK Travels.
-
-For support:
-📞 +91 7799009855
-📧 support@nrktravels.com
-
-Have a safe and pleasant journey.`;
+    let termsAndConditions = `Terms & Conditions:\n\n${termsString}\n\n`;
+    termsAndConditions += `Thank you for choosing Vizag Taxi.\n\n`;
+    termsAndConditions += `For support:\n`;
+    termsAndConditions += `📞 +91 9111989222\n`;
+    termsAndConditions += `📧 info@nrtravels.com\n\n`;
+    termsAndConditions += `Have a safe and pleasant journey.`;
 
     customerMessage += termsAndConditions;
 
@@ -98,7 +139,7 @@ Have a safe and pleasant journey.`;
       const emailHtml = `
         <div style="font-family: Arial, sans-serif; max-width: 650px; margin: auto; padding: 30px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff; color: #334155;">
           <div style="text-align: center; border-bottom: 2px solid #059669; padding-bottom: 20px; margin-bottom: 20px;">
-            <h1 style="color: #059669; margin: 0; font-size: 24px;">NRK Travels</h1>
+            <h1 style="color: #059669; margin: 0; font-size: 24px;">Vizag Taxi</h1>
             <p style="margin: 5px 0 0; color: #64748b; font-size: 14px;">Booking Confirmation</p>
           </div>
           
@@ -126,22 +167,15 @@ Have a safe and pleasant journey.`;
           <div style="margin-bottom: 30px;">
             <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 15px;">Terms & Conditions:</h3>
             <ul style="padding-left: 20px; line-height: 1.6; color: #475569; font-size: 14px; margin: 0;">
-              <li>Extra kilometers after the package limit will be charged at ₹20/km.</li>
-              <li>Extra hours after the package time limit will be charged at ₹400/hour.</li>
-              <li>Driver allowance (Bhatta) is ₹200/day.</li>
-              <li>Toll gate charges and parking charges must be paid by the customer.</li>
-              <li>Driver food and accommodation should be arranged/provided by the customer during outstation trips.</li>
-              <li>Any additional charges not included in the package must be borne by the customer.</li>
-              <li>Customer should carry valid ID proof during the journey.</li>
-              <li>Booking cancellation and refund policy will be applicable as per NRK Travels terms.</li>
+              ${termsList.map(term => `<li>${term}</li>`).join('')}
             </ul>
           </div>
 
           <div style="text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-            <p style="font-weight: bold; color: #0f172a; margin: 0 0 15px;">Thank you for choosing NRK Travels.</p>
+            <p style="font-weight: bold; color: #0f172a; margin: 0 0 15px;">Thank you for choosing Vizag Taxi.</p>
             <p style="margin: 0 0 5px; font-size: 14px; color: #64748b;">For support:</p>
-            <p style="margin: 0 0 5px; font-weight: bold;">📞 +91 7799009855</p>
-            <p style="margin: 0 0 15px;"><a href="mailto:support@nrktravels.com" style="color: #059669; text-decoration: none;">📧 support@nrktravels.com</a></p>
+            <p style="margin: 0 0 5px; font-weight: bold;">📞 +91 91119 89222</p>
+            <p style="margin: 0 0 15px;"><a href="mailto:info@nrtravels.com" style="color: #059669; text-decoration: none;">📧 info@nrtravels.com</a></p>
             <p style="margin: 0; font-style: italic; color: #059669; font-weight: bold;">Have a safe and pleasant journey.</p>
           </div>
         </div>
