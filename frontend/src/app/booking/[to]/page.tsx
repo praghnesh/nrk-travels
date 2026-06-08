@@ -184,7 +184,7 @@ const BookingPageContent = () => {
       distanceKm: isAirport ? 35 : 250, // Realistic city distance
       duration: isAirport ? "1 hour" : "5 hours",
       type: "outstation" as const,
-      description: isAirport ? "Premium Airport Transfer Service. Smooth, reliable, and comfortable rides directly to or from Visakhapatnam International Airport." : `Premium travel service to ${name}. Experience a safe and comfortable journey with NRK Travels.`,
+      description: isAirport ? "Premium Airport Transfer Service. Smooth, reliable, and comfortable rides directly to or from Visakhapatnam International Airport." : `Premium travel service to ${name}. Experience a safe and comfortable journey with Vizag Taxi.`,
       highlights: ["Experienced Drivers", "Well Maintained Fleet", "24/7 Support", "Transparent Pricing"],
       itinerary: [
         { day: "1", title: "Departure", activities: [`Pickup from Visakhapatnam`, `Travel to ${name}`, `Safe Drop-off at destination`] }
@@ -2103,7 +2103,7 @@ const BookingPageContent = () => {
               if (!selectedVehicle) return;
               const f = calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug);
               const message = `
-*New Booking Enquiry - NRK Travels*
+*New Booking Enquiry - Vizag Taxi*
 -----------------------------
 *Vehicle:* ${selectedVehicle.model} (${selectedVehicle.type})
 *Pickup:* ${fromSearch}

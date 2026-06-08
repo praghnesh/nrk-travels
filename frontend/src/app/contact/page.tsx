@@ -276,7 +276,7 @@ const ContactPage = () => {
 
                 <div className="space-y-8">
                   {[
-                    { label: "Main Office", val: "NRK Travels, MVP Colony, Sector-5, Visakhapatnam, AP 530017", icon: MapPin },
+                    { label: "Main Office", val: "Vizag Taxi, MVP Colony, Sector-5, Visakhapatnam, AP 530017", icon: MapPin },
                     { label: "Business Hours", val: "Monday - Sunday: 24 Hours Open", icon: Clock },
                     { label: "Social Media", val: "@nrktravelsvizag", icon: Camera }
                   ].map((item, i) => (

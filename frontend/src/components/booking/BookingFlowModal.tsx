@@ -860,7 +860,7 @@ const BookingFlowModal = ({
                 <span className="text-xs font-black uppercase tracking-widest">Fully Insured Travel</span>
               </div>
               <p className="text-[10px] font-medium opacity-40 leading-relaxed">
-                By proceeding, you agree to NRK Travels terms of service and privacy policy.
+                By proceeding, you agree to Vizag Taxi terms of service and privacy policy.
               </p>
             </div>
           </div>
@@ -1290,7 +1290,7 @@ const BookingFlowModal = ({
                       <ShieldCheck className="w-6 h-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-black text-slate-900 italic">NRK Satisfaction Guarantee</p>
+                      <p className="text-sm font-black text-slate-900 italic">Vizag Taxi Satisfaction Guarantee</p>
                       <p className="text-[10px] font-bold text-slate-400 uppercase">Full refund if cancelled before 4 hours</p>
                     </div>
                   </div>

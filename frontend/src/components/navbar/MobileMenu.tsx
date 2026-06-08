@@ -67,7 +67,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           >
             <div className="flex items-center justify-between mb-12">
               <span className="text-xl font-black tracking-tighter text-emerald-950">
-                NRK <span className="text-orange-500">TRAVELS</span>
+                VIZAG <span className="text-orange-500">TAXI</span>
               </span>
               <button onClick={onClose} className="p-3 bg-emerald-50 rounded-2xl hover:bg-emerald-100 transition-colors group">
                 <X className="w-6 h-6 text-emerald-600 group-hover:rotate-90 transition-transform duration-300" />

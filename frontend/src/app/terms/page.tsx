@@ -30,7 +30,7 @@ const TermsPage = () => {
             <h2 className="text-4xl font-black text-slate-900 tracking-tight">1. Introduction</h2>
             <div className="prose prose-slate max-w-none text-slate-700 font-bold text-lg leading-relaxed space-y-6">
               <p>
-                Welcome to NRK Travels (Vizag Taxi Hub). By accessing our website, mobile application, or using our transportation services, you agree to be bound by these Terms and Conditions. These terms constitute a legally binding agreement between you and NRK Travels.
+                Welcome to Vizag Taxi (Vizag Taxi Hub). By accessing our website, mobile application, or using our transportation services, you agree to be bound by these Terms and Conditions. These terms constitute a legally binding agreement between you and Vizag Taxi.
               </p>
               <p>
                 We provide a platform that connects users with professional transportation services. Our goal is to ensure a safe, luxury, and reliable experience for every passenger.
@@ -65,7 +65,7 @@ const TermsPage = () => {
             <h2 className="text-4xl font-black text-slate-900 tracking-tight">3. Booking Terms</h2>
             <div className="p-10 rounded-[3rem] bg-slate-50 border border-slate-200 space-y-6">
               <p className="text-lg text-slate-700 font-bold leading-relaxed">
-                All bookings are subject to vehicle availability. While we strive to provide the exact vehicle model requested, NRK Travels reserves the right to provide an equivalent or higher category vehicle in case of unforeseen circumstances.
+                All bookings are subject to vehicle availability. While we strive to provide the exact vehicle model requested, Vizag Taxi reserves the right to provide an equivalent or higher category vehicle in case of unforeseen circumstances.
               </p>
               <ul className="space-y-4">
                 {[

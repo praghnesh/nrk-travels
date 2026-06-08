@@ -95,13 +95,13 @@ const Navbar = () => {
                   "text-2xl font-display font-black tracking-tighter leading-none transition-colors duration-500",
                   "text-emerald-600"
                 )}>
-                  NRK
+                  VIZAG
                 </span>
                 <span className={cn(
                   "text-sm font-display font-black tracking-tighter leading-none transition-colors duration-500",
                   "text-orange-500"
                 )}>
-                  TRAVELS
+                  TAXI
                 </span>
               </div>
               <span className={cn(

@@ -68,14 +68,14 @@ const Footer = () => {
               <div className="w-12 h-12 rounded-xl overflow-hidden bg-white border border-slate-100 shadow-md flex items-center justify-center relative">
                 <Image 
                   src="/images/logo.jpg" 
-                  alt="NRK Travels Logo" 
+                  alt="Vizag Taxi Logo" 
                   fill 
                   className="object-cover object-left scale-[1.35] -translate-x-[4%]" 
                 />
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="text-xl font-black text-emerald-600 tracking-tight">NRK</span>
-                <span className="text-sm font-black text-orange-500 tracking-tight">TRAVELS</span>
+                <span className="text-xl font-black text-emerald-600 tracking-tight">VIZAG</span>
+                <span className="text-sm font-black text-orange-500 tracking-tight">TAXI</span>
               </div>
             </div>
             <p className="text-slate-600 text-[13px] leading-relaxed font-bold">

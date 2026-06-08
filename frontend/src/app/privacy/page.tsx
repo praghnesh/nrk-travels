@@ -36,7 +36,7 @@ const PrivacyPolicy = () => {
                   Privacy <span className="text-emerald-600">Policy</span>
                 </h1>
                 <p className="text-xl text-slate-600 dark:text-emerald-100/60 font-medium leading-relaxed">
-                  We are committed to protecting your personal data and ensuring your experience with NRK Travels is secure and transparent.
+                  We are committed to protecting your personal data and ensuring your experience with Vizag Taxi is secure and transparent.
                 </p>
               </div>
 
