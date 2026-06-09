@@ -1,6 +1,6 @@
 const sendEmail = require('./notifications/sendEmail');
 const sendSMS = require('./notifications/sendSMS');
-const sendWhatsApp = require('./notifications/sendWhatsApp');
+const sendWhatsApp = require('../utils/sendWhatsApp');
 const config = require('../config/env');
 
 /**
@@ -34,49 +34,16 @@ const notifyPostPayment = async (booking) => {
     const tripName = getTripName(booking);
     const dateFormatted = formatDate(booking.travel_date);
     const amountPaidStr = booking.amount_paid.toLocaleString('en-IN');
+    const totalAmountStr = booking.total_amount.toLocaleString('en-IN');
     const remainingBalanceStr = booking.remaining_balance.toLocaleString('en-IN');
     
     const isPartial = booking.remaining_balance > 0;
+    const balanceMessage = isPartial 
+      ? 'Please clear the remaining balance before travel date.' 
+      : 'Your booking is fully confirmed. Enjoy your trip.';
 
     // ----- CUSTOMER MESSAGE BUILDER -----
-    let customerMessage = `Booking Confirmation - NRK Travels\n\n`;
-    customerMessage += `Customer Name: ${booking.customer_name}\n`;
-    customerMessage += `Booking ID: ${booking.booking_id}\n`;
-    customerMessage += `Vehicle Name / Tour Name: ${tripName}\n`;
-    customerMessage += `Travel Date: ${dateFormatted}\n`;
-    customerMessage += `Pickup Location: ${booking.pickup_location || 'As specified during booking'}\n`;
-    customerMessage += `Amount Paid: ₹${amountPaidStr}\n`;
-    customerMessage += `Payment Status: ${booking.payment_status.toUpperCase()}\n`;
-    customerMessage += `Booking Status: ${booking.booking_status.toUpperCase()}\n\n`;
-    
-    if (isPartial) {
-      customerMessage += `Remaining Balance: ₹${remainingBalanceStr}\n`;
-      customerMessage += `Please clear the remaining amount before the travel date.\n\n`;
-    } else {
-      customerMessage += `Remaining Balance: ₹0\n`;
-      customerMessage += `Your booking is fully confirmed. Enjoy your trip.\n\n`;
-    }
-
-    const termsAndConditions = `Terms & Conditions:
-
-• Extra kilometers after the package limit will be charged at ₹20/km.
-• Extra hours after the package time limit will be charged at ₹400/hour.
-• Driver allowance (Bhatta) is ₹200/day.
-• Toll gate charges and parking charges must be paid by the customer.
-• Driver food and accommodation should be arranged/provided by the customer during outstation trips.
-• Any additional charges not included in the package must be borne by the customer.
-• Customer should carry valid ID proof during the journey.
-• Booking cancellation and refund policy will be applicable as per NRK Travels terms.
-
-Thank you for choosing NRK Travels.
-
-For support:
-📞 +91 7799009855
-📧 support@nrktravels.com
-
-Have a safe and pleasant journey.`;
-
-    customerMessage += termsAndConditions;
+    let customerMessage = `🚖 NRK Travels\n\nHello ${booking.customer_name},\n\nPayment Successful ✅\n\nBooking ID: ${booking.booking_id}\nTrip: ${tripName}\nTravel Date: ${dateFormatted}\n\nTotal Amount: ₹${totalAmountStr}\nPaid Amount: ₹${amountPaidStr}\nRemaining Balance: ₹${remainingBalanceStr}\n\n${balanceMessage}\n\nTerms & Conditions:\n\n• Extra kilometers after package limit: ₹20/km\n• Extra hours after package limit: ₹400/hour\n• Driver allowance: ₹200/day\n• Toll and parking charges to be paid by customer\n• Driver food/accommodation to be arranged by customer\n\nThank you for choosing NRK Travels.`;
 
     // ----- ADMIN MESSAGE BUILDER -----
     const adminMessage = `ADMIN ALERT: New Payment Received\n\nCustomer: ${booking.customer_name}\nPhone: ${booking.phone}\nBooking ID: ${booking.booking_id}\nPayment ID: ${booking.payment_id}\n\nTrip: ${tripName}\nTravel Date: ${dateFormatted}\n\nTotal Amount: ₹${booking.total_amount.toLocaleString('en-IN')}\nAmount Paid: ₹${amountPaidStr}\nRemaining Balance: ₹${remainingBalanceStr}\n\nStatus: ${booking.booking_status.toUpperCase()}`;
@@ -85,7 +52,9 @@ Have a safe and pleasant journey.`;
     
     // 1. Customer SMS
     if (booking.phone) {
-      await sendSMS(booking.phone, customerMessage);
+      // Create a shorter SMS version since SMS has limit
+      const smsMessage = `NRK Travels: Payment Successful. Booking ID: ${booking.booking_id}. Paid: ₹${amountPaidStr}. Bal: ₹${remainingBalanceStr}. Thank you!`;
+      await sendSMS(booking.phone, smsMessage);
     }
 
     // 2. Customer WhatsApp
@@ -108,32 +77,25 @@ Have a safe and pleasant journey.`;
             <p style="margin: 0 0 10px;"><strong>Vehicle Name / Tour Name:</strong> ${tripName}</p>
             <p style="margin: 0 0 10px;"><strong>Travel Date:</strong> ${dateFormatted}</p>
             <p style="margin: 0 0 10px;"><strong>Pickup Location:</strong> ${booking.pickup_location || 'As specified during booking'}</p>
+            <p style="margin: 0 0 10px;"><strong>Total Amount:</strong> ₹${totalAmountStr}</p>
             <p style="margin: 0 0 10px;"><strong>Amount Paid:</strong> ₹${amountPaidStr}</p>
             <p style="margin: 0 0 10px;"><strong>Payment Status:</strong> <span style="color: #059669; font-weight: bold;">${booking.payment_status.toUpperCase()}</span></p>
             <p style="margin: 0 0 0;"><strong>Booking Status:</strong> ${booking.booking_status.toUpperCase()}</p>
           </div>
 
           <div style="margin-bottom: 30px; padding: 15px; border-left: 4px solid #059669; background-color: #ecfdf5;">
-            ${isPartial ? 
-              `<p style="margin: 0 0 8px; font-weight: bold; font-size: 16px; color: #065f46;">Remaining Balance: ₹${remainingBalanceStr}</p>
-               <p style="margin: 0; color: #064e3b;">Please clear the remaining amount before the travel date.</p>` 
-              : 
-              `<p style="margin: 0 0 8px; font-weight: bold; font-size: 16px; color: #065f46;">Remaining Balance: ₹0</p>
-               <p style="margin: 0; color: #064e3b;">Your booking is fully confirmed. Enjoy your trip.</p>`
-            }
+            <p style="margin: 0 0 8px; font-weight: bold; font-size: 16px; color: #065f46;">Remaining Balance: ₹${remainingBalanceStr}</p>
+            <p style="margin: 0; color: #064e3b;">${balanceMessage}</p>
           </div>
 
           <div style="margin-bottom: 30px;">
             <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 15px;">Terms & Conditions:</h3>
             <ul style="padding-left: 20px; line-height: 1.6; color: #475569; font-size: 14px; margin: 0;">
-              <li>Extra kilometers after the package limit will be charged at ₹20/km.</li>
-              <li>Extra hours after the package time limit will be charged at ₹400/hour.</li>
-              <li>Driver allowance (Bhatta) is ₹200/day.</li>
-              <li>Toll gate charges and parking charges must be paid by the customer.</li>
-              <li>Driver food and accommodation should be arranged/provided by the customer during outstation trips.</li>
-              <li>Any additional charges not included in the package must be borne by the customer.</li>
-              <li>Customer should carry valid ID proof during the journey.</li>
-              <li>Booking cancellation and refund policy will be applicable as per NRK Travels terms.</li>
+              <li>Extra kilometers after package limit: ₹20/km</li>
+              <li>Extra hours after package limit: ₹400/hour</li>
+              <li>Driver allowance: ₹200/day</li>
+              <li>Toll and parking charges to be paid by customer</li>
+              <li>Driver food/accommodation to be arranged by customer</li>
             </ul>
           </div>
 
@@ -156,10 +118,10 @@ Have a safe and pleasant journey.`;
         <p style="white-space: pre-wrap; color: #334155; line-height: 1.6;">${adminMessage}</p>
       </div>
     `;
-    const adminEmail = 'saripillimurali59@gmail.com';
+    const adminEmail = 'saripillimurali8@gmail.com'; // using new admin email
     await sendEmail(adminEmail, `Payment Alert: ${booking.booking_id}`, adminEmailHtml);
 
-    // 5. Admin WhatsApp (Optional, if PERSONAL_PHONE is set in config)
+    // 5. Admin WhatsApp
     if (config.twilio && config.twilio.adminPhone) {
       await sendWhatsApp(config.twilio.adminPhone, adminMessage);
     }

@@ -749,6 +749,22 @@ const BookingFlowModal = ({
           email: passengerEmail,
           contact: passengerPhone,
         },
+        config: {
+          display: {
+            blocks: {
+              paytm: {
+                name: "Pay via Paytm",
+                instruments: [{ method: "wallet", wallet: "paytm" }]
+              },
+              upi: {
+                name: "Pay via UPI",
+                instruments: [{ method: "upi" }]
+              }
+            },
+            sequence: ["block.paytm", "block.upi"],
+            preferences: { show_default_blocks: true }
+          }
+        },
         theme: {
           color: "#059669"
         }

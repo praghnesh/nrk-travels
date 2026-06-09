@@ -228,6 +228,8 @@ const sendConfirmationEmail = async (booking) => {
   }
 };
 
+const sendWhatsApp = require('../utils/sendWhatsApp');
+
 /**
  * Send WhatsApp booking confirmation via Meta Graph API
  */
@@ -237,41 +239,22 @@ const sendWhatsAppConfirmation = async (booking) => {
   const travelDateStr = booking.travel_date ? new Date(booking.travel_date).toDateString() : new Date().toDateString();
   const amountPaid = parseFloat(booking.amount || booking.total_amount || 0).toLocaleString('en-IN');
   const rawPhone = booking.phone || booking.customer_phone || '0000000000';
-  const cleanPhone = rawPhone.replace(/\D/g, '');
-  const formattedPhone = cleanPhone.length === 10 ? `+91${cleanPhone}` : `+${cleanPhone}`;
 
   const serviceName = booking.booking_type === 'vehicle' ? 'Vehicle Booking' : booking.booking_type === 'hire_driver' ? 'Hire Driver Request' : 'Tour Booking';
 
   const messageText = `Hello ${booking.customer_name},\n\nYour NRK Travels booking is CONFIRMED!\n\nBooking ID: ${booking.booking_id}\nTravel Date: ${travelDateStr}\nService: ${serviceName}\nAmount Paid: ₹${amountPaid}\n\nTerms & Conditions:\n${termsString}\n\nThank you for choosing NRK Travels!`;
 
   try {
-    if (config.twilio.accountSid && config.twilio.authToken && config.twilio.phoneNumber) {
-      const client = require('twilio')(config.twilio.accountSid, config.twilio.authToken);
-      
-      // Send to customer via WhatsApp
-      await client.messages.create({
-        body: messageText,
-        from: `whatsapp:${config.twilio.phoneNumber}`,
-        to: `whatsapp:${formattedPhone}`
-      });
-      console.log(`Twilio WhatsApp: Confirmation successfully sent to ${formattedPhone}`);
-      
-      // Send to Admin via WhatsApp if configured
-      if (config.twilio.adminPhone) {
-        const adminText = `🚨 New Booking Alert!\nID: ${booking.booking_id}\nCustomer: ${booking.customer_name}\nPhone: ${formattedPhone}\nService: ${serviceName}\nDate: ${travelDateStr}`;
-        await client.messages.create({
-          body: adminText,
-          from: `whatsapp:${config.twilio.phoneNumber}`,
-          to: `whatsapp:${config.twilio.adminPhone.startsWith('+') ? config.twilio.adminPhone : '+' + config.twilio.adminPhone}`
-        });
-        console.log(`Twilio WhatsApp: Admin alert successfully sent to ${config.twilio.adminPhone}`);
-      }
-    } else {
-      console.log('[MOCK TWILIO WHATSAPP] Credentials not configured. Dispatch body:');
-      console.log(messageText);
+    // Send to customer via WhatsApp
+    await sendWhatsApp(rawPhone, messageText);
+    
+    // Send to Admin via WhatsApp if configured
+    if (config.twilio && config.twilio.adminPhone) {
+      const adminText = `🚨 New Booking Alert!\nID: ${booking.booking_id}\nCustomer: ${booking.customer_name}\nPhone: ${rawPhone}\nService: ${serviceName}\nDate: ${travelDateStr}`;
+      await sendWhatsApp(config.twilio.adminPhone, adminText);
     }
   } catch (error) {
-    console.error('Twilio WhatsApp API error:', error.message);
+    console.error('WhatsApp API error:', error.message);
   }
 };
 

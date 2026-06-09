@@ -30,6 +30,11 @@ const config = {
     authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER,
     adminPhone: process.env.PERSONAL_PHONE
+  },
+  whatsapp: {
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID,
+    accessToken: process.env.WHATSAPP_ACCESS_TOKEN,
+    apiVersion: process.env.WHATSAPP_API_VERSION || 'v23.0'
   }
 };
 

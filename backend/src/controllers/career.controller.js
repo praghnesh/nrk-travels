@@ -1,8 +1,16 @@
 const careerService = require('../services/career.service');
+const sendWhatsApp = require('../utils/sendWhatsApp');
 
 const submitApplication = async (req, res, next) => {
   try {
     const application = await careerService.submitApplication(req.body);
+
+    // Async WhatsApp Notification
+    if (application.phone) {
+      const message = `Hello ${application.name},\n\nThank you for applying for the ${application.position || 'position'} at NRK Travels. We have received your application and our HR team will review it shortly.\n\nBest Regards,\nNRK Travels HR Team`;
+      sendWhatsApp(application.phone, message);
+    }
+
     res.status(201).json({
       success: true,
       data: application,
