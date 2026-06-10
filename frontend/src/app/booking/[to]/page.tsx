@@ -806,7 +806,9 @@ const BookingPageContent = () => {
     return calculateFare(Number(selectedVehicle.pricePerKm), selectedVehicle.slug, selectedVehicle.model, selectedVehicle.pax).total;
   }, [selectedVehicle, calculatedDistance, tripType, pickupDate, returnDate]);
 
-  const partPayAmount = Math.ceil(totalAmount * 0.3);
+  const totalGst = useMemo(() => Math.ceil(totalAmount * 0.05), [totalAmount]);
+  const totalWithGst = useMemo(() => totalAmount + totalGst, [totalAmount, totalGst]);
+  const partPayAmount = useMemo(() => Math.ceil(totalWithGst * 0.3), [totalWithGst]);
 
   const handleBookNow = (vehicle: any) => {
     setSelectedVehicle(vehicle);
@@ -823,8 +825,8 @@ const BookingPageContent = () => {
   const maxPassengers = selectedVehicle ? parseInt(selectedVehicle.pax, 10) || 1 : 1;
 
   const initiatePayment = async () => {
-    if (!passengerName.trim() || !passengerPhone.trim() || !passengerEmail.trim()) {
-      setErrorMessage("Please fill out lead guest name, phone, and email details before paying.");
+    if (!passengerName.trim() || !passengerPhone.trim()) {
+      setErrorMessage("Please fill out lead guest name and phone details before paying.");
       return;
     }
     if (!termsAccepted) {
@@ -840,15 +842,15 @@ const BookingPageContent = () => {
         throw new Error("Razorpay SDK failed to load. Please verify your connection.");
       }
 
-      const amountToPay = paymentOption === "part" ? partPayAmount : totalAmount;
+      const amountToPay = paymentOption === "part" ? partPayAmount : totalWithGst;
 
       const bookingRes = await createBooking({
         customer_name: passengerName,
-        customer_email: passengerEmail,
+        customer_email: passengerEmail || "info@nrktravels.com",
         customer_phone: passengerPhone,
         booking_type: "vehicle",
         total_amount: amountToPay, // Keep for backward compat
-        actual_total_amount: totalAmount,
+        actual_total_amount: totalWithGst,
         amount_paid: amountToPay,
         payment_percentage: paymentOption === "part" ? 30 : 100,
         special_requests: `From: ${fromSearch}. To: ${toSearch}. Type: ${tripType}. Vehicle: ${selectedVehicle?.model}. Mode: Outstation. Pickup: ${pickupDate}. Return: ${returnDate || 'N/A'}. Passengers: ${passengerCount}. Age: ${passengerAge}. Gender: ${passengerGender}. Option: ${paymentOption === "part" ? "Part (30%)" : "Full"}`,
@@ -891,7 +893,7 @@ const BookingPageContent = () => {
         },
         prefill: {
           name: passengerName,
-          email: passengerEmail,
+          email: passengerEmail || "info@nrktravels.com",
           contact: passengerPhone,
         },
         config: {
@@ -1536,7 +1538,18 @@ const BookingPageContent = () => {
                       <div className="flex flex-col items-center md:items-end gap-6">
                         <div className="text-right">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Fare</p>
-                          <p className="text-3xl font-black text-emerald-600 tracking-tighter">₹{fares.total.toLocaleString()}</p>
+                          {(() => {
+                            const fareGst = Math.ceil(fares.total * 0.05);
+                            const fareTotalWithGst = fares.total + fareGst;
+                            return (
+                              <>
+                                <p className="text-3xl font-black text-emerald-600 tracking-tighter">₹{fareTotalWithGst.toLocaleString('en-IN')}</p>
+                                <p className="text-[9px] font-black text-emerald-600/70 mt-0.5">
+                                  Incl. 5% GST (₹{fareGst.toLocaleString('en-IN')})
+                                </p>
+                              </>
+                            );
+                          })()}
                           <p className="text-[10px] font-black text-slate-500 mt-1">
                             Up to {vehicle.pax} passengers
                           </p>
@@ -1707,7 +1720,7 @@ const BookingPageContent = () => {
               </div>
               <div className="space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Base Rate</p>
-                <p className="text-lg font-black text-slate-900">₹{selectedVehicle.pricePerKm}/KM</p>
+                <p className="text-lg font-black text-slate-900">₹{tripType === "one-way" ? getOneWayRate(selectedVehicle.slug, selectedVehicle.model) : selectedVehicle.pricePerKm}/KM</p>
               </div>
               <div className="space-y-2">
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Driver Bhatta ({f.days} Day{f.days > 1 ? "s" : ""})</p>
@@ -1724,7 +1737,7 @@ const BookingPageContent = () => {
         <div className="p-8 rounded-[2rem] bg-[#F8FAFC] border border-slate-100">
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pricing Model</p>
           <p className="text-[10px] font-bold text-slate-400 italic mt-1">
-            Total booking amount stays ₹{totalAmount.toLocaleString("en-IN")} for the whole vehicle.
+            Total booking amount stays ₹{totalWithGst.toLocaleString("en-IN")} (incl. 5% GST) for the whole vehicle.
           </p>
         </div>
       </div>
@@ -1819,7 +1832,7 @@ const BookingPageContent = () => {
               </div>
             </div>
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address</label>
+              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Email Address (Optional)</label>
               <input
                 type="email"
                 value={passengerEmail}
@@ -1899,10 +1912,10 @@ const BookingPageContent = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-black text-slate-900 uppercase">Part Pay</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Pay 30% now, rest to the driver</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Pay 30% now (incl. GST), rest to driver</p>
                 </div>
               </div>
-              <p className="text-2xl font-black text-slate-900 z-10">₹{partPayAmount.toLocaleString()}</p>
+              <p className="text-2xl font-black text-slate-900 z-10">₹{partPayAmount.toLocaleString('en-IN')}</p>
               {paymentOption === "part" && <motion.div layoutId="pay-bg" className="absolute inset-0 bg-emerald-50/50 -z-0" />}
             </button>
 
@@ -1919,10 +1932,10 @@ const BookingPageContent = () => {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-black text-slate-900 uppercase">Full Pay</p>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Pay total amount now</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Pay total amount now (incl. 5% GST)</p>
                 </div>
               </div>
-              <p className="text-2xl font-black text-slate-900 z-10">₹{totalAmount.toLocaleString()}</p>
+              <p className="text-2xl font-black text-slate-900 z-10">₹{totalWithGst.toLocaleString('en-IN')}</p>
               {paymentOption === "full" && <motion.div layoutId="pay-bg" className="absolute inset-0 bg-emerald-50/50 -z-0" />}
             </button>
           </div>
@@ -1946,7 +1959,7 @@ const BookingPageContent = () => {
           >
             {isProcessing
               ? "Processing..."
-              : `Proceed to Pay ₹${(paymentOption === "part" ? partPayAmount : totalAmount).toLocaleString()}`}
+              : `Proceed to Pay ₹${(paymentOption === "part" ? partPayAmount : totalWithGst).toLocaleString('en-IN')}`}
           </button>
         </div>
       </div>
@@ -1978,12 +1991,18 @@ const BookingPageContent = () => {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-slate-900 tracking-tight">₹{fares.total.toLocaleString()}</p>
-                  <p className="text-[8px] font-bold text-slate-400 mt-0.5">
-                    {fares.totalKm} km
-                  </p>
-                </div>
+                {(() => {
+                  const cardGst = Math.ceil(fares.total * 0.05);
+                  const cardTotalWithGst = fares.total + cardGst;
+                  return (
+                    <div className="text-right">
+                      <p className="text-sm font-black text-slate-900 tracking-tight">₹{cardTotalWithGst.toLocaleString('en-IN')}</p>
+                      <p className="text-[8px] font-bold text-slate-400 mt-0.5">
+                        {fares.totalKm} km (incl. GST)
+                      </p>
+                    </div>
+                  );
+                })()}
               </button>
             );
           })}
@@ -2135,9 +2154,17 @@ const BookingPageContent = () => {
               }
             </span>
           </div>
+          <div className="flex justify-between items-center border-t border-slate-100 pt-6">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Fare</span>
+            <span className="text-sm font-black text-slate-900">₹{totalAmount.toLocaleString('en-IN')}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">GST (5%)</span>
+            <span className="text-sm font-black text-slate-900">₹{totalGst.toLocaleString('en-IN')}</span>
+          </div>
           <div className="flex justify-between items-center">
             <span className="text-lg font-black text-slate-900 uppercase tracking-tighter">Total Price</span>
-            <span className="text-3xl font-black text-emerald-600 tracking-tight">₹{totalAmount.toLocaleString()}</span>
+            <span className="text-3xl font-black text-emerald-600 tracking-tight">₹{totalWithGst.toLocaleString('en-IN')}</span>
           </div>
           <button
             onClick={() => {
@@ -2158,7 +2185,9 @@ const BookingPageContent = () => {
 ${tripType === "one-way" ? `*One Way Base Fare:* ₹${f.base.toLocaleString()}
 *One Way Premium Charge:* ₹1,000` : `*Base Price:* ₹${f.base.toLocaleString()}
 *Driver Bhatta:* ₹${f.bhatta.toLocaleString()} (${f.days} Day${f.days > 1 ? "s" : ""})`}
-*Total Estimated Fare:* ₹${f.total.toLocaleString()}
+*Subtotal:* ₹${f.total.toLocaleString('en-IN')}
+*GST (5%):* ₹${Math.ceil(f.total * 0.05).toLocaleString('en-IN')}
+*Total Estimated Fare:* ₹${(f.total + Math.ceil(f.total * 0.05)).toLocaleString('en-IN')}
 -----------------------------
 Please confirm availability and book my ride!
 `.trim();

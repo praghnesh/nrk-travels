@@ -646,15 +646,20 @@ const FleetDetailsPage = () => {
 
     return {
       price: total,
-      distance: chargeKm,
+      distance: totalKm,
       time: timeStr,
       breakdown: { 
         base: basePrice, 
         bhatta: bhatta, 
-        info: `KM Outstation package rate (₹${vehicle.pricePerKm}/KM).`
+        info: totalKm < chargeKm
+          ? `KM Outstation package rate (₹${vehicle.pricePerKm}/KM). Min ${chargeKm} KM billing applied.`
+          : `KM Outstation package rate (₹${vehicle.pricePerKm}/KM).`
       }
     };
   })();
+
+  const gstAmount = Math.ceil(sidebarFare.price * 0.05);
+  const totalWithGst = sidebarFare.price + gstAmount;
 
   const handleBookNow = () => {
     setIsBookingModalOpen(true);
@@ -946,13 +951,18 @@ const FleetDetailsPage = () => {
               </div>
             )}
             
+            <div className="flex justify-between items-baseline border-b border-emerald-500/10 pb-2">
+              <span className="text-[9px] font-black text-slate-500 uppercase">GST (5%)</span>
+              <span className="text-sm font-black text-slate-900">₹{gstAmount.toLocaleString('en-IN')}</span>
+            </div>
+
             <div className="flex justify-between items-baseline pt-1">
               <span className="text-[10px] font-black text-emerald-700 uppercase">Estimated Total</span>
-              <span className="text-2xl font-black text-emerald-600 tracking-tighter">₹{sidebarFare.price.toLocaleString('en-IN')}</span>
+              <span className="text-2xl font-black text-emerald-600 tracking-tighter">₹{totalWithGst.toLocaleString('en-IN')}</span>
             </div>
 
             <p className="text-[8px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider italic">
-              {sidebarFare.breakdown.info} Excludes toll & parking charges.
+              {sidebarFare.breakdown.info} Incl. 5% GST. Excludes toll & parking charges.
             </p>
           </div>
         )}

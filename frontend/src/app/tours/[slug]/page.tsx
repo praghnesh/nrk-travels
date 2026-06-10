@@ -109,15 +109,19 @@ const TourDetailsPage = () => {
       }
 
       const totalAmount = getBookingPrice();
+      const totalGst = Math.ceil(totalAmount * 0.05);
+      const totalWithGst = totalAmount + totalGst;
+      const amountToPay = paymentOption === "part" ? Math.round(totalWithGst * 0.3) : totalWithGst;
+
       const bookingRes = await createBooking({
         customer_name: formData.fullName,
-        customer_email: formData.email,
+        customer_email: formData.email || "info@nrktravels.com",
         customer_phone: formData.phone,
         booking_type: "tour",
-        total_amount: totalAmount,
-        actual_total_amount: totalAmount,
-        amount_paid: totalAmount,
-        payment_percentage: 100,
+        total_amount: amountToPay,
+        actual_total_amount: totalWithGst,
+        amount_paid: amountToPay,
+        payment_percentage: paymentOption === "part" ? 30 : 100,
         special_requests: formData.requirements || "",
         tour_id: tour.title, // using tour title or slug
         travel_date: new Date().toISOString().split("T")[0]
@@ -454,7 +458,7 @@ const TourDetailsPage = () => {
                     </div>
                     <div className="flex justify-between text-xs font-bold text-slate-500">
                       <span>Amount Paid</span>
-                      <span className="text-emerald-600 font-black">₹{(paymentOption === "part" ? Math.round(getBookingPrice() * 0.3) : getBookingPrice()).toLocaleString('en-IN')}</span>
+                      <span className="text-emerald-600 font-black">₹{(paymentOption === "part" ? Math.round((getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)) * 0.3) : (getBookingPrice() + Math.ceil(getBookingPrice() * 0.05))).toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                   <Link
@@ -532,7 +536,7 @@ const TourDetailsPage = () => {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email ID</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Email ID (Optional)</label>
                         <input
                           type="email"
                           placeholder="Enter your email address"
@@ -578,10 +582,10 @@ const TourDetailsPage = () => {
                             </div>
                             <div>
                               <p className="text-sm font-black text-slate-900">Part Pay</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay 30% now, rest to the driver</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay 30% now (incl. GST), rest to driver</p>
                             </div>
                           </div>
-                          <p className="text-lg font-black text-slate-900">₹{Math.round(getBookingPrice() * 0.3).toLocaleString('en-IN')}</p>
+                          <p className="text-lg font-black text-slate-900">₹{Math.round((getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)) * 0.3).toLocaleString('en-IN')}</p>
                         </button>
 
                         <button
@@ -597,10 +601,10 @@ const TourDetailsPage = () => {
                             </div>
                             <div>
                               <p className="text-sm font-black text-slate-900">Full Pay</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay total amount</p>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pay total amount (incl. 5% GST)</p>
                             </div>
                           </div>
-                          <p className="text-lg font-black text-slate-900">₹{getBookingPrice().toLocaleString('en-IN')}</p>
+                          <p className="text-lg font-black text-slate-900">₹{(getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)).toLocaleString('en-IN')}</p>
                         </button>
                       </div>
                     </div>
@@ -716,20 +720,20 @@ const TourDetailsPage = () => {
                       <div className="space-y-4">
                         <button
                           onClick={() => {
-                            if (formData.fullName && formData.phone && formData.email && termsAccepted) {
+                            if (formData.fullName && formData.phone && termsAccepted) {
                               handleFinalBooking();
                             }
                           }}
-                          disabled={!(formData.fullName && formData.phone && formData.email && termsAccepted)}
+                          disabled={!(formData.fullName && formData.phone && termsAccepted)}
                           className={cn(
                             "w-full h-16 rounded-2xl flex items-center justify-center gap-3 text-sm font-black uppercase tracking-widest transition-all shadow-xl",
-                            (formData.fullName && formData.phone && formData.email && termsAccepted)
+                            (formData.fullName && formData.phone && termsAccepted)
                               ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700 cursor-pointer"
                               : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
                           )}
                         >
                           <CreditCard className="w-5 h-5" />
-                          Proceed to Payment - ₹{paymentOption === "part" ? Math.round(getBookingPrice() * 0.3).toLocaleString('en-IN') : getBookingPrice().toLocaleString('en-IN')}
+                          Proceed to Payment - ₹{paymentOption === "part" ? Math.round((getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)) * 0.3).toLocaleString('en-IN') : (getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)).toLocaleString('en-IN')}
                           <ChevronRight className="w-5 h-5" />
                         </button>
 
@@ -845,15 +849,45 @@ const TourDetailsPage = () => {
                             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Driver Bhatta ({tour.slug === "vizag-city-tour" ? 1 : (tour.days || 1)} Days)</span>
                             <span className="text-sm font-black text-slate-900 tracking-tight">₹{getDriverBhatta().toLocaleString('en-IN')}</span>
                           </div>
+                          <div className="flex justify-between items-center pt-3 border-t border-slate-100/50">
+                            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">GST (5%)</span>
+                            <span className="text-sm font-black text-slate-900 tracking-tight">₹{Math.ceil(getBookingPrice() * 0.05).toLocaleString('en-IN')}</span>
+                          </div>
                           <div className="flex justify-between items-center pt-3 border-t border-slate-100">
                             <span className="text-sm font-black text-slate-900 uppercase tracking-widest font-black">Total Price</span>
-                            <span className="text-2xl font-black text-slate-900 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</span>
+                            <span className="text-2xl font-black text-slate-900 tracking-tight">₹{(getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)).toLocaleString('en-IN')}</span>
                           </div>
                         </div>
 
                         {/* Actions & Notes */}
                         <div className="space-y-4">
-                          <button className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-600 transition-all w-fit">
+                          <button
+                            onClick={() => {
+                              if (!selectedVehicle) return;
+                              const tourPrice = getBookingPrice();
+                              const tourGst = Math.ceil(tourPrice * 0.05);
+                              const tourTotalWithGst = tourPrice + tourGst;
+                              const message = `
+*New Tour Booking Enquiry - Vizag Taxi*
+-----------------------------
+*Tour Package:* ${tour.title}
+*Vehicle:* ${selectedVehicle.model}
+*Pickup:* Visakhapatnam
+*Duration:* ${tour.duration} (${tour.days} Days)
+
+*PRICING BREAKDOWN:*
+*Package Fare:* ₹${(tourPrice - getDriverBhatta()).toLocaleString('en-IN')}
+*Driver Bhatta:* ₹${getDriverBhatta().toLocaleString('en-IN')} (${tour.slug === "vizag-city-tour" ? 1 : (tour.days || 1)} Days)
+*Subtotal:* ₹${tourPrice.toLocaleString('en-IN')}
+*GST (5%):* ₹${tourGst.toLocaleString('en-IN')}
+*Total Price:* ₹${tourTotalWithGst.toLocaleString('en-IN')}
+-----------------------------
+Please confirm availability and book my tour!
+`.trim();
+                              window.open(`https://api.whatsapp.com/send?phone=919111989222&text=${encodeURIComponent(message)}`, "_blank");
+                            }}
+                            className="flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-600 transition-all w-fit"
+                          >
                             <MessageCircle className="w-4 h-4" />
                             Share summary on WhatsApp
                           </button>
@@ -927,7 +961,7 @@ const TourDetailsPage = () => {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 z-50 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.08)] backdrop-blur-lg bg-white/90">
         <div className="flex flex-col">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Total Booking Price</p>
-          <p className="text-xl font-black text-emerald-600 tracking-tight">₹{getBookingPrice().toLocaleString('en-IN')}</p>
+          <p className="text-xl font-black text-emerald-600 tracking-tight">₹{(getBookingPrice() + Math.ceil(getBookingPrice() * 0.05)).toLocaleString('en-IN')}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -950,7 +984,7 @@ const TourDetailsPage = () => {
             }}
             className={cn(
               "px-8 h-12 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95",
-              (formData.fullName && formData.phone && formData.email) || bookingStep !== "checkout"
+              (formData.fullName && formData.phone) || bookingStep !== "checkout"
                 ? "bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700"
                 : "bg-emerald-50 text-emerald-600/40 cursor-not-allowed border border-emerald-100"
             )}

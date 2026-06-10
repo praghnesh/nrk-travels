@@ -204,6 +204,7 @@ const BookingFlowModal = ({
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [paymentOption, setPaymentOption] = useState<"part" | "full">("part");
 
   // Lead passenger details state hooks
   const [passengerName, setPassengerName] = useState("");
@@ -239,13 +240,15 @@ const BookingFlowModal = ({
     if (found) {
       setSelectedFrom({ name: fromLocation, lat: parseFloat(found.lat), lon: parseFloat(found.lon) });
     } else {
+      const controller = new AbortController();
       const timer = setTimeout(async () => {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(fromLocation)}&countrycodes=in&limit=1`, {
             headers: {
               "Accept-Language": "en",
               "User-Agent": "NRK-Travels-App/1.0"
-            }
+            },
+            signal: controller.signal
           });
           if (res.ok) {
             const data = await res.json();
@@ -253,11 +256,13 @@ const BookingFlowModal = ({
               setSelectedFrom({ name: fromLocation, lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
             }
           }
-        } catch (e) {
-          console.error("Geocoding fromLocation error:", e);
+        } catch (e: any) {
+          if (e.name !== 'AbortError') {
+            console.error("Geocoding fromLocation error:", e);
+          }
         }
       }, 600);
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(timer); controller.abort(); };
     }
   }, [fromLocation]);
 
@@ -272,13 +277,15 @@ const BookingFlowModal = ({
     if (found) {
       setSelectedTo({ name: toLocation, lat: parseFloat(found.lat), lon: parseFloat(found.lon) });
     } else {
+      const controller = new AbortController();
       const timer = setTimeout(async () => {
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(toLocation)}&countrycodes=in&limit=1`, {
             headers: {
               "Accept-Language": "en",
               "User-Agent": "NRK-Travels-App/1.0"
-            }
+            },
+            signal: controller.signal
           });
           if (res.ok) {
             const data = await res.json();
@@ -286,11 +293,13 @@ const BookingFlowModal = ({
               setSelectedTo({ name: toLocation, lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
             }
           }
-        } catch (e) {
-          console.error("Geocoding toLocation error:", e);
+        } catch (e: any) {
+          if (e.name !== 'AbortError') {
+            console.error("Geocoding toLocation error:", e);
+          }
         }
       }, 600);
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(timer); controller.abort(); };
     }
   }, [toLocation]);
 
@@ -700,17 +709,22 @@ const BookingFlowModal = ({
 
     return {
       price: total,
-      distance: chargeKm,
+      distance: totalKm,
       time: timeStr,
       breakdown: {
         base: basePrice,
         bhatta: bhatta,
-        extraInfo: `Round-Trip Outstation (${calculatedDays} Days, ₹${vehicle.pricePerKm}/KM)`
+        extraInfo: totalKm < chargeKm
+          ? `Round-Trip Outstation (${calculatedDays} Days, ₹${vehicle.pricePerKm}/KM) - Min ${chargeKm} KM billing applied`
+          : `Round-Trip Outstation (${calculatedDays} Days, ₹${vehicle.pricePerKm}/KM)`
       }
     };
   };
 
   const currentFare = getCalculatedFare();
+  const gstAmount = Math.ceil(currentFare.price * 0.05);
+  const totalWithGst = currentFare.price + gstAmount;
+  const partPayAmount = Math.ceil(totalWithGst * 0.3);
 
   const handleNext = () => {
     if (step < 3) setStep(step + 1);
@@ -729,15 +743,17 @@ const BookingFlowModal = ({
         throw new Error("Razorpay SDK failed to load. Please verify your internet connection.");
       }
 
+      const amountToPay = paymentOption === "part" ? partPayAmount : totalWithGst;
+
       const bookingRes = await createBooking({
         customer_name: passengerName,
-        customer_email: passengerEmail,
+        customer_email: passengerEmail || "info@nrktravels.com",
         customer_phone: passengerPhone,
         booking_type: "vehicle",
-        total_amount: currentFare.price,
-        actual_total_amount: currentFare.price,
-        amount_paid: currentFare.price,
-        payment_percentage: 100,
+        total_amount: amountToPay,
+        actual_total_amount: totalWithGst,
+        amount_paid: amountToPay,
+        payment_percentage: paymentOption === "part" ? 30 : 100,
         special_requests: `From: ${fromLocation}. To: ${toLocation || "Local"}. Mode: ${bookingMode}. Scope: ${dayTripScope}. Package: ${localPackage}. Trip Type: ${tripType}. Return Date: ${returnDate}`,
         fleet_id: vehicle.model,
         travel_date: pickupDate ? pickupDate.split("T")[0] : new Date().toISOString().split("T")[0]
@@ -777,7 +793,7 @@ const BookingFlowModal = ({
         },
         prefill: {
           name: passengerName,
-          email: passengerEmail,
+          email: passengerEmail || "info@nrktravels.com",
           contact: passengerPhone,
         },
         config: {
@@ -844,7 +860,7 @@ const BookingFlowModal = ({
             {fromLocation && (bookingMode === "day" && dayTripScope === "local" ? true : !!toLocation) && (
               <div className="text-right">
                 <p className="text-[8px] font-black opacity-40 uppercase tracking-widest">Est. Total</p>
-                <p className="text-xl font-black text-emerald-400 leading-none mt-0.5">₹{currentFare.price.toLocaleString('en-IN')}</p>
+                <p className="text-xl font-black text-emerald-400 leading-none mt-0.5">₹{totalWithGst.toLocaleString('en-IN')}</p>
                 <span className="text-[7px] font-black uppercase text-emerald-300 opacity-80 tracking-widest">{currentFare.breakdown.extraInfo}</span>
               </div>
             )}
@@ -867,7 +883,7 @@ const BookingFlowModal = ({
                   <div>
                     <p className="text-[10px] font-black opacity-40 uppercase tracking-widest">Rate Mode</p>
                     <p className="text-lg font-black italic">
-                      {bookingMode === "day" && dayTripScope === "local" ? "Local Day Package" : `₹${vehicle.pricePerKm} / KM`}
+                      {bookingMode === "day" && dayTripScope === "local" ? "Local Day Package" : tripType === "one-way" ? `₹${getOneWayRate(vehicle.slug, vehicle.model)} / KM` : `₹${vehicle.pricePerKm} / KM`}
                     </p>
                   </div>
                 </div>
@@ -894,7 +910,8 @@ const BookingFlowModal = ({
                 {fromLocation && (bookingMode === "day" && dayTripScope === "local" ? true : !!toLocation) && (
                   <div className="pt-6 border-t border-white/10 space-y-2">
                     <p className="text-[10px] font-black opacity-40 uppercase tracking-widest">Estimated Total</p>
-                    <p className="text-2xl font-black text-emerald-400 mt-1">₹{currentFare.price.toLocaleString('en-IN')}</p>
+                    <p className="text-2xl font-black text-emerald-400 mt-1">₹{totalWithGst.toLocaleString('en-IN')}</p>
+                    <p className="text-[9px] font-bold text-emerald-300/60 uppercase tracking-widest mt-1">Incl. 5% GST (₹{gstAmount.toLocaleString('en-IN')})</p>
                     <p className="text-[8px] font-black uppercase text-emerald-300 opacity-80 tracking-widest">{currentFare.breakdown.extraInfo}</p>
                   </div>
                 )}
@@ -1306,9 +1323,13 @@ const BookingFlowModal = ({
                             <span className="text-base font-black text-slate-900">₹{currentFare.breakdown.bhatta.toLocaleString('en-IN')}</span>
                           </div>
                         )}
+                        <div className="flex justify-between items-baseline border-b border-emerald-500/10 pb-2">
+                          <span className="text-[10px] font-black text-slate-500 uppercase">GST (5%)</span>
+                          <span className="text-base font-black text-slate-900">₹{gstAmount.toLocaleString('en-IN')}</span>
+                        </div>
                         <div className="flex justify-between items-baseline pt-2">
-                          <span className="text-xs font-black text-emerald-700 uppercase">Total Estimated Fare</span>
-                          <span className="text-3xl font-black text-emerald-600 tracking-tighter">₹{currentFare.price.toLocaleString('en-IN')}</span>
+                          <span className="text-xs font-black text-emerald-700 uppercase">Total (incl. GST)</span>
+                          <span className="text-3xl font-black text-emerald-600 tracking-tighter">₹{totalWithGst.toLocaleString('en-IN')}</span>
                         </div>
                       </div>
                       
@@ -1386,6 +1407,9 @@ const BookingFlowModal = ({
                       <div className="text-center space-y-2">
                         <h4 className="text-2xl font-black text-slate-900">Booking Confirmed!</h4>
                         <p className="text-slate-500 font-bold italic">Your ride is scheduled. Driver details will be sent soon.</p>
+                        <p className="text-xs font-black text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 uppercase tracking-widest w-fit mx-auto mt-2">
+                          Amount Paid: ₹{(paymentOption === "part" ? partPayAmount : totalWithGst).toLocaleString('en-IN')}
+                        </p>
                       </div>
                       <Button
                         onClick={onClose}
@@ -1440,7 +1464,7 @@ const BookingFlowModal = ({
                           </div>
 
                           <div className="space-y-1.5">
-                            <label className="text-[9px] font-black text-slate-550 uppercase tracking-widest ml-1">Email Address *</label>
+                            <label className="text-[9px] font-black text-slate-550 uppercase tracking-widest ml-1">Email Address (Optional)</label>
                             <div className="relative group">
                               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-emerald-600 transition-colors" />
                               <input
@@ -1449,7 +1473,6 @@ const BookingFlowModal = ({
                                 value={passengerEmail}
                                 onChange={(e) => setPassengerEmail(e.target.value)}
                                 className="w-full h-12 bg-white border border-slate-200 rounded-xl pl-10 pr-4 text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500 transition-all"
-                                required
                               />
                             </div>
                           </div>
@@ -1457,20 +1480,43 @@ const BookingFlowModal = ({
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[
-                          { id: 'upi', icon: Smartphone, title: 'UPI / GPay', desc: 'Scan & Pay instantly' },
-                          { id: 'card', icon: CreditCard, title: 'Credit / Debit Card', desc: 'Visa, Master, Amex' }
-                        ].map((m) => (
-                          <button key={m.id} className="p-6 rounded-2xl border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50/50 transition-all text-left space-y-2 group">
-                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-emerald-600 group-hover:bg-white transition-all">
-                              <m.icon className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-black text-slate-900 uppercase tracking-tight">{m.title}</p>
-                              <p className="text-[10px] font-bold text-slate-400 italic">{m.desc}</p>
-                            </div>
-                          </button>
-                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setPaymentOption("part")}
+                          className={cn(
+                            "p-6 rounded-2xl border-2 transition-all text-left flex items-start gap-4 group relative overflow-hidden",
+                            paymentOption === "part" ? "border-emerald-600 bg-emerald-50/20" : "border-slate-100 hover:border-emerald-200"
+                          )}
+                        >
+                          <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-1 shrink-0", paymentOption === "part" ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300")}>
+                            {paymentOption === "part" && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-black text-slate-900 uppercase">Part Pay</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-normal">Pay 30% now (incl. GST), rest to driver</p>
+                            <p className="text-2xl font-black text-slate-900 pt-2">₹{partPayAmount.toLocaleString('en-IN')}</p>
+                          </div>
+                          {paymentOption === "part" && <motion.div layoutId="pay-bg-modal" className="absolute inset-0 bg-emerald-50/50 -z-10" />}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setPaymentOption("full")}
+                          className={cn(
+                            "p-6 rounded-2xl border-2 transition-all text-left flex items-start gap-4 group relative overflow-hidden",
+                            paymentOption === "full" ? "border-emerald-600 bg-emerald-50/20" : "border-slate-100 hover:border-emerald-200"
+                          )}
+                        >
+                          <div className={cn("w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all mt-1 shrink-0", paymentOption === "full" ? "border-emerald-600 bg-emerald-600 text-white" : "border-slate-300")}>
+                            {paymentOption === "full" && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-sm font-black text-slate-900 uppercase">Full Pay</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-normal">Pay total amount (incl. 5% GST)</p>
+                            <p className="text-2xl font-black text-slate-900 pt-2">₹{totalWithGst.toLocaleString('en-IN')}</p>
+                          </div>
+                          {paymentOption === "full" && <motion.div layoutId="pay-bg-modal" className="absolute inset-0 bg-emerald-50/50 -z-10" />}
+                        </button>
                       </div>
 
                       {/* Vehicle Specific Dynamic Terms & Conditions */}
@@ -1522,17 +1568,31 @@ const BookingFlowModal = ({
                         </div>
 
                         <div className="space-y-4">
-                          <div className="flex justify-between items-end">
-                            <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Amount to Pay</p>
-                            <p className="text-4xl font-black">₹{currentFare.price.toLocaleString('en-IN')}</p>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-end">
+                              <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Subtotal</p>
+                              <p className="text-sm font-black opacity-60">₹{currentFare.price.toLocaleString('en-IN')}</p>
+                            </div>
+                            <div className="flex justify-between items-end">
+                              <p className="text-[10px] font-bold opacity-40 uppercase tracking-widest">GST (5%)</p>
+                              <p className="text-sm font-black opacity-60">₹{gstAmount.toLocaleString('en-IN')}</p>
+                            </div>
+                            <div className="flex justify-between items-end pt-2 border-t border-white/10">
+                              <p className="text-xs font-bold opacity-60 uppercase tracking-widest">Total Amount</p>
+                              <p className="text-2xl font-black opacity-60">₹{totalWithGst.toLocaleString('en-IN')}</p>
+                            </div>
+                            <div className="flex justify-between items-end pt-2 border-t border-white/15">
+                              <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Amount to Pay Now</p>
+                              <p className="text-4xl font-black text-emerald-400">₹{(paymentOption === "part" ? partPayAmount : totalWithGst).toLocaleString('en-IN')}</p>
+                            </div>
                           </div>
 
                           <Button
                             onClick={handlePayment}
-                            disabled={isProcessing || !termsAccepted || !passengerName.trim() || !passengerPhone.trim() || !passengerEmail.trim()}
+                            disabled={isProcessing || !termsAccepted || !passengerName.trim() || !passengerPhone.trim()}
                             className={cn(
                               "w-full h-16 rounded-2xl font-black text-lg transition-all shadow-2xl border-none group-hover:scale-[1.02]",
-                              termsAccepted && !isProcessing && passengerName.trim() && passengerPhone.trim() && passengerEmail.trim()
+                              termsAccepted && !isProcessing && passengerName.trim() && passengerPhone.trim()
                                 ? "bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20"
                                 : "bg-emerald-500/30 text-white/50 cursor-not-allowed"
                             )}
@@ -1542,7 +1602,7 @@ const BookingFlowModal = ({
                                 <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full" />
                                 Processing...
                               </div>
-                            ) : "Pay Now & Confirm"}
+                            ) : `Pay ₹${(paymentOption === "part" ? partPayAmount : totalWithGst).toLocaleString('en-IN')} Now & Confirm`}
                           </Button>
                         </div>
                       </div>
