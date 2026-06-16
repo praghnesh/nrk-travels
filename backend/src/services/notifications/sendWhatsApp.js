@@ -1,13 +1,23 @@
-const axios = require('axios');
+const twilio = require('twilio');
 const config = require('../../config/env');
 
+let twilioClient;
+
+try {
+  if (config.twilio && config.twilio.accountSid && config.twilio.authToken) {
+    twilioClient = twilio(config.twilio.accountSid, config.twilio.authToken);
+  }
+} catch (error) {
+  console.error("Twilio initialization failed:", error);
+}
+
 /**
- * Send a WhatsApp message using Meta Cloud API
+ * Send a WhatsApp message using Twilio API
  * @param {string} to - Recipient phone number
  * @param {string} body - Text message body
  */
 const sendWhatsApp = async (to, body) => {
-  if (!config.whatsapp || !config.whatsapp.phoneNumberId || !config.whatsapp.accessToken) {
+  if (!twilioClient || !config.twilio.phoneNumber) {
     console.warn(`[MOCK WhatsApp] To: ${to} | Body:\n${body}`);
     return true; // Mock success if not configured
   }
@@ -19,30 +29,17 @@ const sendWhatsApp = async (to, body) => {
       toFormatted = `91${toFormatted}`;
     }
 
-    const url = `https://graph.facebook.com/${config.whatsapp.apiVersion}/${config.whatsapp.phoneNumberId}/messages`;
-    
-    const payload = {
-      messaging_product: "whatsapp",
-      recipient_type: "individual",
-      to: toFormatted,
-      type: "text",
-      text: {
-        preview_url: false,
-        body: body
-      }
-    };
-
-    const response = await axios.post(url, payload, {
-      headers: {
-        'Authorization': `Bearer ${config.whatsapp.accessToken}`,
-        'Content-Type': 'application/json'
-      }
+    const message = await twilioClient.messages.create({
+      body: body,
+      // Default Twilio WhatsApp Sandbox number or user configured number
+      from: `whatsapp:${config.twilio.phoneNumber}`,
+      to: `whatsapp:+${toFormatted}`
     });
 
-    console.log(`WhatsApp Sent Successfully to ${toFormatted}:`, response.data.messages?.[0]?.id);
+    console.log(`WhatsApp Sent Successfully to +${toFormatted} via Twilio: SID ${message.sid}`);
     return true;
   } catch (error) {
-    console.error(`WhatsApp Error sending to ${to}:`, error.response?.data || error.message);
+    console.error(`Twilio WhatsApp Error sending to ${to}:`, error.message);
     return false; // Don't throw so it doesn't crash the enquiry service
   }
 };
